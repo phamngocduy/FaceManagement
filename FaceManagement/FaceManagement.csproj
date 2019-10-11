@@ -190,8 +190,22 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\jquery.blockUI.js" />
+    <Content Include="Scripts\jquery.blockUI.min.js" />
+    <Content Include="Static\face_expression_model-shard1" />
+    <Content Include="Static\face_expression_model-weights_manifest.json" />
+    <Content Include="Static\face_landmark_68_model-shard1" />
+    <Content Include="Static\face_landmark_68_model-weights_manifest.json" />
+    <Content Include="Static\face_landmark_68_tiny_model-shard1" />
+    <Content Include="Static\face_landmark_68_tiny_model-weights_manifest.json" />
+    <Content Include="Static\face_recognition_model-shard1" />
+    <Content Include="Static\face_recognition_model-shard2" />
+    <Content Include="Static\face_recognition_model-weights_manifest.json" />
+    <Content Include="Static\tiny_face_detector_model-shard1" />
+    <Content Include="Static\tiny_face_detector_model-weights_manifest.json" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
+    <Content Include="Scripts\face-api.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
@@ -236,6 +250,11 @@
     <Content Include="Views\Manage\VerifyPhoneNumber.cshtml" />
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Static\mtcnn_model-shard1" />
+    <Content Include="Static\mtcnn_model-weights_manifest.json" />
+    <Content Include="Static\ssd_mobilenetv1_model-shard1" />
+    <Content Include="Static\ssd_mobilenetv1_model-shard2" />
+    <Content Include="Static\ssd_mobilenetv1_model-weights_manifest.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
