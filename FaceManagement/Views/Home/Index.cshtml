@@ -17,26 +17,55 @@
                         image.onload = function () {
                             var img = document.createElement("img");
                             img.src = e.target.result;
-
+                            
                             var ctx = canvas.getContext("2d");
                             ctx.drawImage(img, 0, 0);
 
                             var width = img.width;
                             var height = img.height;
-                            console.log(width); console.log(height);
+                            var maxWidth = MAX_WIDTH;
+                            var maxHeight = MAX_HEIGHT;
 
-                            if (MAX_WIDTH * height / width <= MAX_HEIGHT) {
-                                height = MAX_WIDTH * height / width;
-                                width = MAX_WIDTH;
+                            if (maxWidth * height / width <= maxHeight) {
+                                height = maxWidth * height / width;
+                                width = maxWidth;
                             } else {
-                                width = MAX_HEIGHT * width / height;
-                                height = MAX_HEIGHT;
+                                width = maxHeight * width / height;
+                                height = maxHeight;
                             }
-                            console.log(width); console.log(height);
                             canvas.width = width;
                             canvas.height = height;
+                            
                             var ctx = canvas.getContext("2d");
-                            ctx.drawImage(img, 0, 0, width, height);
+                            switch (ROTATE_VAL) {
+                                case "-90":
+                                    canvas.width = height;
+                                    canvas.height = width;
+                                    ctx.transform(1, 0, 0, 1, 0, width);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, 0, -width);
+                                    break;
+                                case "90":
+                                    canvas.width = height;
+                                    canvas.height = width;
+                                    ctx.transform(1, 0, 0, 1, height, 0);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, -height, 0);
+                                    break;
+                                case "180":
+                                    ctx.transform(1, 0, 0, 1, width, height);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, -width, -height);
+                                    break;
+                                default:
+                                    ctx.drawImage(img, 0, 0, width, height);
+                            }
                             $(canvas).width('');
                             $(canvas).height('');
 
@@ -53,6 +82,15 @@
             $('#Canvas').height($('#Canvas').height() - $('#Canvas').offset().top);
             MAX_WIDTH = $('#Canvas').width(); MAX_HEIGHT = $('#Canvas').height();
             $('#Canvas').width(MAX_WIDTH).height(MAX_HEIGHT).css('border', 'ridge');
+
+            ROTATE_VAL = 0;
+            $('[id=Rotate]').click(function () {
+                $($(this).parents('ul')[0]).find('li').removeClass('active');
+                $($(this).parents('li')[0]).addClass('active');
+                ROTATE_VAL = $(this).attr('data-val');
+                $.blockUI();
+                $('#Upload').trigger('change');
+            });
         })
     </script>
 
@@ -86,7 +124,7 @@
             var image = new Image(); image.src = canvas.toDataURL();
             const displaySize = { width: canvas.width, height: canvas.height }
             //faceapi.matchDimensions(canvas, displaySize);
-            const detections = await faceapi.detectAllFaces(image, new faceapi.SsdMobilenetv1Options()) // faceapi.MtcnnOptions()
+            const detections = await faceapi.detectAllFaces(image, new faceapi.MtcnnOptions()) // faceapi.MtcnnOptions()
                 .withFaceLandmarks().withFaceExpressions();
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
             //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
