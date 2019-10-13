@@ -1,5 +1,5 @@
 ﻿@{
-    var UserId = User.Identity.Name ?? "";
+    var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId == "" ? "phamngocduy" : UserId;
     UserId = UserId.ToLower().Split('@')[0];
 }
@@ -91,6 +91,13 @@
             $('#Canvas').height($('#Canvas').height() - $('#Canvas').offset().top);
             MAX_WIDTH = $('#Canvas').width(); MAX_HEIGHT = $('#Canvas').height();
             $('#Canvas').width(MAX_WIDTH).height(MAX_HEIGHT).css('border', 'ridge');
+            $('#Canvas').each(function () {
+                var ctx = this.getContext("2d");
+                ctx.font = "13px Comic Sans MS";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("Click 'Take photo' to start", this.width / 2, this.height / 2);
+            });
 
             $('[id=Model]').click(function () {
                 $($(this).parents('ul')[0]).find('li').removeClass('active');
@@ -144,10 +151,26 @@
                 TINYFACEDETECTOR = new faceapi.TinyFaceDetectorOptions();
                 OPTIONS = TINYFACEDETECTOR;
                 console.log('Loading FaceID');
-                const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
-                const detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
-                const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, [detections.descriptor]);
-                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
+                try {
+                    if (localStorage.getItem(USERID) == null) {
+                        const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
+                        const detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                        localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
+                    }
+                    const descriptor = new Float32Array(JSON.parse(localStorage.getItem(USERID)));
+                    const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, [descriptor]);
+                    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
+                } catch {
+                    @if (Request.IsAuthenticated)
+                    {
+                        @MvcHtmlString.Create("alert('Face Not Found');")
+                    }
+                    else
+                    {
+                        @MvcHtmlString.Create("alert('You Should Login');")
+                    }
+                    faceMatcher = null;
+                }
 
                 unblockUI();
             });
@@ -181,7 +204,7 @@
                 }
                 canvas.width = width;
                 canvas.height = height;
-                            
+
                 var ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, width, height);
                 $(canvas).width('');
@@ -202,12 +225,14 @@
             faceapi.draw.drawDetections(canvas, resizedDetections);
             //faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
             faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-            const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
-            results.forEach((result, i) => {
-                const box = resizedDetections[i].detection.box
-                const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() })
-                drawBox.draw(canvas)
-            });
+            if (faceMatcher != null) {
+                const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+                results.forEach((result, i) => {
+                    const box = resizedDetections[i].detection.box
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() })
+                    drawBox.draw(canvas)
+                });
+            }
             unblockUI();
         }
     </script>
