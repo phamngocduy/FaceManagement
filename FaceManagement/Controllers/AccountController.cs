@@ -323,6 +323,7 @@ namespace FaceManagement.Controllers
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
+            loginInfo = loginInfo ?? Session["ExternalLoginInfo"] as ExternalLoginInfo;
             if (loginInfo == null)
             {
                 return RedirectToAction("Login");
@@ -341,9 +342,10 @@ namespace FaceManagement.Controllers
                 case SignInStatus.Failure:
                 default:
                     // If the user does not have an account, then prompt the user to create an account
-                    ViewBag.ReturnUrl = returnUrl;
-                    ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
-                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    // ViewBag.ReturnUrl = returnUrl;
+                    // ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
+                    // return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    return await ExternalLoginConfirmation(new ExternalLoginConfirmationViewModel { Email = loginInfo.Email }, returnUrl);
             }
         }
 

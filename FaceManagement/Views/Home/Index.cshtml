@@ -1,4 +1,9 @@
-﻿<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
+﻿@{
+    var UserId = User.Identity.Name ?? "";
+    UserId = UserId == "" ? "phamngocduy" : UserId;
+    UserId = UserId.ToLower().Split('@')[0];
+}
+<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 
@@ -121,7 +126,7 @@
     <script>
         $.blockUI();
         window.onload = function () {
-            USERID = 'phamngocduy';
+            USERID = '@UserId';
             NOW = Date.now();
             console.log('Loading models');
             Promise.all([

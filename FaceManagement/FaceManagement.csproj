@@ -49,6 +49,8 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -173,7 +175,34 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Microsoft\Owin\Security\VanLang\Constants.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Provider\IVanLangAuthenticationProvider.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Provider\VanLangApplyRedirectContext.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Provider\VanLangAuthenticatedContext.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Provider\VanLangAuthenticationProvider.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Provider\VanLangReturnEndpointContext.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\Resources.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\UserManagerExtensions.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\VanLangAuthenticationExtensions.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\VanLangAuthenticationHandler.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\VanLangAuthenticationMiddleware.cs" />
+    <Compile Include="Microsoft\Owin\Security\VanLang\VanLangAuthenticationOptions.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\DatabaseModels.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DatabaseModels.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DatabaseModels.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DatabaseModels.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\DatabaseModels.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DatabaseModels.edmx</DependentUpon>
+    </Compile>
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -189,6 +218,16 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Models\DatabaseModels.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DatabaseModels.edmx</DependentUpon>
+      <LastGenOutput>DatabaseModels.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\DatabaseModels.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DatabaseModels.edmx</DependentUpon>
+      <LastGenOutput>DatabaseModels.cs</LastGenOutput>
+    </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
@@ -204,6 +243,13 @@
     <Content Include="Static\face_recognition_model-weights_manifest.json" />
     <Content Include="Static\tiny_face_detector_model-shard1" />
     <Content Include="Static\tiny_face_detector_model-weights_manifest.json" />
+    <EntityDeploy Include="Models\DatabaseModels.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>DatabaseModels.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\DatabaseModels.edmx.diagram">
+      <DependentUpon>DatabaseModels.edmx</DependentUpon>
+    </Content>
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\face-api.min.js" />
@@ -257,7 +303,9 @@
     <Content Include="Static\ssd_mobilenetv1_model-shard2" />
     <Content Include="Static\ssd_mobilenetv1_model-weights_manifest.json" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
