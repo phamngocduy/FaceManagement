@@ -1,6 +1,5 @@
 ﻿@{
     var UserId = User.Identity.GetUserName() ?? "";
-    UserId = UserId == "" ? "phamngocduy" : UserId;
     UserId = UserId.ToLower().Split('@')[0];
 }
 <script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
@@ -22,7 +21,7 @@
                         image.onload = function () {
                             var img = document.createElement("img");
                             img.src = e.target.result;
-                            
+
                             var ctx = canvas.getContext("2d");
                             ctx.drawImage(img, 0, 0);
 
@@ -40,7 +39,7 @@
                             }
                             canvas.width = width;
                             canvas.height = height;
-                            
+
                             var ctx = canvas.getContext("2d");
                             switch (ROTATE_VAL) {
                                 case "-90":
@@ -129,16 +128,25 @@
             }).filter(`[data-val=${ROTATE_VAL}]`).parent().addClass('active');
         })
     </script>
-
     <script>
         $.blockUI();
         window.onload = function () {
             USERID = '@UserId';
             NOW = Date.now();
             console.log('Loading models');
+            FETCH = self.fetch;
+            self.fetch = async function (input, init) {
+                console.log(input);
+                A = await FETCH(input);
+                return {
+                    arrayBuffer: async function () {
+                        return await A.clone().arrayBuffer();
+                    }
+                };
+            }
             Promise.all([
                 faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
+                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
@@ -154,7 +162,15 @@
                 try {
                     if (localStorage.getItem(USERID) == null) {
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
-                        const detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                        var detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                        if (detections == undefined) {
+                            alert('Using MTCNN models');
+                            detections == await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
+                        }
+                        if (detections == undefined) {
+                            alert('Using SsdMobilenetv1 models');
+                            detections == await faceapi.detectSingleFace(img, SSDMOBILENETV1).withFaceLandmarks().withFaceDescriptor();
+                        }
                         localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
                     }
                     const descriptor = new Float32Array(JSON.parse(localStorage.getItem(USERID)));
