@@ -99,6 +99,7 @@
             });
 
             $('[id=Model]').click(function () {
+                $('button.navbar-toggle').trigger('click');
                 $($(this).parents('ul')[0]).find('li').removeClass('active');
                 $($(this).parents('li')[0]).addClass('active');
                 switch ($(this).attr('data-val')) {
@@ -119,6 +120,7 @@
             ROTATE_VAL = ROTATE_VAL == null ? 0 : ROTATE_VAL;
             localStorage.setItem('ROTATE_VAL', ROTATE_VAL);
             $('[id=Rotate]').click(function () {
+                $('button.navbar-toggle').trigger('click');
                 $($(this).parents('ul')[0]).find('li').removeClass('active');
                 $($(this).parents('li')[0]).addClass('active');
                 ROTATE_VAL = $(this).attr('data-val');
@@ -129,32 +131,28 @@
         })
     </script>
     <script>
-        $.blockUI();
+        $.blockUI({ message: '<h1><img src="@Url.Content("~/Content/busy.gif")" /> Loading ...<span id="Progress">1</span>/7</h1>' });
         window.onload = function () {
             USERID = '@UserId';
             NOW = Date.now();
             console.log('Loading models');
             FETCH = self.fetch;
-            self.fetch1 = async function (input) {
-                console.log(input);
-                var A = await FETCH(input, { cache: "no-store" });
-                var B = await A.blob();
-                var Res = new Response(B, null);
-                return Res;
-                //return {
-                    //arrayBuffer: A.clone().arrayBuffer
-                //};
+            self.fetch = function (input) {
+                return FETCH(input, { cache: "no-store" });
+            }
+            function showProgress(val) {
+                $('#Progress').text(val);
             }
             Promise.all([
-                faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'), showProgress(1),
+                faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'), showProgress(2),
+                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'), showProgress(3),
+                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'), showProgress(4),
+                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'), showProgress(5),
+                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'), showProgress(6)
             ]).then(async function () {
                 console.log('Finished in ' + (Date.now() - NOW));
-                NOW = Date.now();
+                NOW = Date.now(); showProgress(7);
                 MTCNN = new faceapi.MtcnnOptions();
                 SSDMOBILENETV1 = new faceapi.SsdMobilenetv1Options();
                 TINYFACEDETECTOR = new faceapi.TinyFaceDetectorOptions();
@@ -162,6 +160,11 @@
                 console.log('Loading FaceID');
                 try {
                     if (localStorage.getItem(USERID) == null) {
+                        if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
+                            var path = USERID.match(/[a-z]+/)[0];
+                            paths = USERID.split(path);
+                            USERID = paths[0] + '/' + path + '/' + paths[1];
+                        }
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
                         var detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
                         if (detections == undefined) {
@@ -256,35 +259,4 @@
 
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
-
-    <script src="@Url.Content("~/Scripts/zip.js")"></script>
-    <script>
-        $(function () {
-            zip.workerScriptsPath = '@Url.Content("~/Scripts/zip_js/")';
-            fetch('@Url.Content("~/Static/face_recognition_model-shard1.zip")').then(async function (blob) {
-                blob = await blob.blob();
-                // use a BlobReader to read the zip from a Blob object
-                zip.createReader(new zip.BlobReader(blob), function (reader) {
-                    // get all entries from the zip
-                    reader.getEntries(function (entries) {
-                        if (entries.length) {
-                            // get first entry content as text
-                            entries[0].getData(new zip.BlobWriter(), function (text) {
-                                // text contains the entry data as a String
-                                A = text;
-                                // close the zip reader
-                                reader.close(function () {
-                                    // onclose callback
-                                });
-                            }, function (current, total) {
-                                // onprogress callback
-                            });
-                        }
-                    });
-                }, function (error) {
-                    console.error(error);
-                });
-            });
-       })
-    </script>
 }
