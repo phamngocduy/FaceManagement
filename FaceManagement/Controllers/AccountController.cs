@@ -365,16 +365,25 @@ namespace FaceManagement.Controllers
             {
                 // Get the information about the user from the external login provider
                 var info = await AuthenticationManager.GetExternalLoginInfoAsync();
+                info = info ?? Session["ExternalLoginInfo"] as ExternalLoginInfo;
                 if (info == null)
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user);
+                IdentityResult result;
+                var user = await UserManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    result = await UserManager.AddLoginAsync(user.Id, info.Login);
+                } else
+                {
+                    user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                    result = await UserManager.CreateAsync(user);
+                }
                 if (result.Succeeded)
                 {
                     result = await UserManager.AddLoginAsync(user.Id, info.Login);
-                    if (result.Succeeded)
+                    if (result.Succeeded || User.Identity.IsAuthenticated)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                         return RedirectToLocal(returnUrl);
