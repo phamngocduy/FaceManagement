@@ -1,6 +1,6 @@
 ﻿@{
     var UserId = User.Identity.GetUserName() ?? "";
-    UserId = UserId.ToLower().Split('@')[0];
+    UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
 <script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" />
@@ -146,7 +146,7 @@
             }
             Promise.all([
                 faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
-                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
