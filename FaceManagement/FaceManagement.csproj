@@ -233,6 +233,9 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery.blockUI.js" />
     <Content Include="Scripts\jquery.blockUI.min.js" />
+    <Content Include="Scripts\zip_js\inflate.js" />
+    <Content Include="Scripts\zip_js\z-worker.js" />
+    <Content Include="Scripts\zip.js" />
     <Content Include="Static\face_expression_model-shard1" />
     <Content Include="Static\face_expression_model-weights_manifest.json" />
     <Content Include="Static\face_landmark_68_model-shard1" />

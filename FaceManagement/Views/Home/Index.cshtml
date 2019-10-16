@@ -135,14 +135,15 @@
             NOW = Date.now();
             console.log('Loading models');
             FETCH = self.fetch;
-            self.fetch = async function (input, init) {
+            self.fetch1 = async function (input) {
                 console.log(input);
-                A = await FETCH(input);
-                return {
-                    arrayBuffer: async function () {
-                        return await A.clone().arrayBuffer();
-                    }
-                };
+                var A = await FETCH(input, { cache: "no-store" });
+                var B = await A.blob();
+                var Res = new Response(B, null);
+                return Res;
+                //return {
+                    //arrayBuffer: A.clone().arrayBuffer
+                //};
             }
             Promise.all([
                 faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
@@ -150,7 +151,7 @@
                 faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
                 faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")')
+                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'),
             ]).then(async function () {
                 console.log('Finished in ' + (Date.now() - NOW));
                 NOW = Date.now();
@@ -255,4 +256,35 @@
 
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
+
+    <script src="@Url.Content("~/Scripts/zip.js")"></script>
+    <script>
+        $(function () {
+            zip.workerScriptsPath = '@Url.Content("~/Scripts/zip_js/")';
+            fetch('@Url.Content("~/Static/face_recognition_model-shard1.zip")').then(async function (blob) {
+                blob = await blob.blob();
+                // use a BlobReader to read the zip from a Blob object
+                zip.createReader(new zip.BlobReader(blob), function (reader) {
+                    // get all entries from the zip
+                    reader.getEntries(function (entries) {
+                        if (entries.length) {
+                            // get first entry content as text
+                            entries[0].getData(new zip.BlobWriter(), function (text) {
+                                // text contains the entry data as a String
+                                A = text;
+                                // close the zip reader
+                                reader.close(function () {
+                                    // onclose callback
+                                });
+                            }, function (current, total) {
+                                // onprogress callback
+                            });
+                        }
+                    });
+                }, function (error) {
+                    console.error(error);
+                });
+            });
+       })
+    </script>
 }
