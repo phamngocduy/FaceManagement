@@ -6,6 +6,14 @@
 <input id="Upload" type="file" style="display:none" />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 
+@if (!Request.IsAuthenticated)
+{
+    <script>
+        if (confirm('Do you want to login?'))
+            window.location.replace('@Url.Action("Login", "Account")');
+    </script>
+}
+
 @section Scripts {
     <script>
         $(function () {
@@ -180,14 +188,10 @@
                     const descriptor = new Float32Array(JSON.parse(localStorage.getItem(USERID)));
                     const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, [descriptor]);
                     faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
-                } catch {
+                } catch (err) {
                     @if (Request.IsAuthenticated)
                     {
                         @MvcHtmlString.Create("alert('Face Not Found');")
-                    }
-                    else
-                    {
-                        @MvcHtmlString.Create("alert('You Should Login');")
                     }
                     faceMatcher = null;
                 }
