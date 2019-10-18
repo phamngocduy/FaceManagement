@@ -4,9 +4,15 @@
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
 <img id="Avatar" src="" />
+<br />
+<button onclick="clearCache()">Clear cache</button>
 
 @section Scripts {
     <script>
+        function clearCache() {
+            localStorage.clear();
+            alert('Clear cache successfully');
+        }
         $(function () {
             var USERID = '@UserId';
             if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {

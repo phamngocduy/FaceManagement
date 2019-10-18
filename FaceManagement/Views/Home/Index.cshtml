@@ -185,10 +185,13 @@
                         }
                         localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
                     }
-                    const descriptor = new Float32Array(JSON.parse(localStorage.getItem(USERID)));
-                    const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, [descriptor]);
-                    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
+                    const descriptor = [new Float32Array(JSON.parse(localStorage.getItem(USERID)))];
+                    if (localStorage.getItem(`${USERID}2`) != null)
+                        descriptor.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${USERID}2`)).descriptor)));
+                    const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, descriptor);
+                    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.5 : 0.45);
                 } catch (err) {
+                    console.error(err);
                     @if (Request.IsAuthenticated)
                     {
                         @MvcHtmlString.Create("alert('Face Not Found');")
@@ -251,10 +254,24 @@
             faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
             if (faceMatcher != null) {
                 const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+                A = results;
+                B = detections;
+                var distance = 1;
+                var descriptor = null;
                 results.forEach((result, i) => {
-                    const box = resizedDetections[i].detection.box
-                    const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() })
-                    drawBox.draw(canvas)
+                    const box = resizedDetections[i].detection.box;
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
+                    drawBox.draw(canvas);
+                    if (result.label == USERID && result.distance < distance) {
+                        distance = result.distance;
+                        descriptor = detections[i].descriptor;
+                    }
+                    if (i == results.length - 1) {
+                        if (distance < 1) {
+                            if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
+                                localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
+                        }
+                    }
                 });
             }
             unblockUI();
