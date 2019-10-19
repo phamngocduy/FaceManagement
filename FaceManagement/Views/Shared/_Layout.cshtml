@@ -17,7 +17,15 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" onclick="javascript:void($('#Upload').click())" href="#">Take photo</a>
+                <a class="navbar-brand" onclick="takePhoto(event)" href="@Url.Action("Index", "Home")">Take photo</a>
+                <script>
+                    function takePhoto(event) {
+                        $('#Upload').each(function() {
+                            event.preventDefault();
+                            $(this).click();
+                        });
+                    }
+                </script>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
