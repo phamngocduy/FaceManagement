@@ -14,39 +14,34 @@ namespace FaceManagement.Controllers
             return View();
         }
 
+        FaceIDEntities db = new FaceIDEntities();
+
         public JsonResult getAll()
         {
-            using (var db = new FaceIDEntities())
-            {
-                var tags = db.MyTags.ToList();
-                return Json(tags, JsonRequestBehavior.AllowGet);
-            }
+            var tags = db.MyTags.ToList();
+            return Json(tags, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult getById(int id)
         {
-            using (var db = new FaceIDEntities())
-            {
-                var tag = db.MyTags.Find(id);
-                return Json(tag, JsonRequestBehavior.AllowGet);
-            }
+            var tag = db.MyTags.Find(id);
+            return Json(tag, JsonRequestBehavior.AllowGet);
         }
 
         public string create(MyTag tag)
         {
             if (tag != null)
             {
-                using (var db = new FaceIDEntities())
-                    try
-                    {
-                        db.MyTags.Add(tag);
-                        db.SaveChanges();
-                        return "Tag Created";
-                    }
-                    catch (Exception e)
-                    {
-                        return e.GetBaseException().Message;
-                    }
+                try
+                {
+                    db.MyTags.Add(tag);
+                    db.SaveChanges();
+                    return "Tag Created";
+                }
+                catch (Exception e)
+                {
+                    return e.GetBaseException().Message;
+                }
             }
             else return "Invalid Tag";
         }
@@ -55,7 +50,6 @@ namespace FaceManagement.Controllers
         {
             if (model != null)
             {
-                using (var db = new FaceIDEntities())
                 try
                 {
                     var tag = db.MyTags.Find(model.id);
@@ -69,6 +63,12 @@ namespace FaceManagement.Controllers
                 }
             }
             else return "Invalid Tag";
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

@@ -20,7 +20,7 @@
                 <a class="navbar-brand" onclick="takePhoto(event)" href="@Url.Action("Index", "Home")">Take photo</a>
                 <script>
                     function takePhoto(event) {
-                        $('#Upload').each(function() {
+                        $('#Upload').each(function () {
                             event.preventDefault();
                             $(this).click();
                         });
@@ -63,6 +63,8 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/angular.js"></script>
+    <script src="~/Scripts/angular-route.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

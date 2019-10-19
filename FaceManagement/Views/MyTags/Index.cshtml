@@ -1,15 +1,26 @@
-﻿<div ng-controller="tagController">
+﻿<div ng-app="myTags">
     <h1>My Tags</h1>
-    <br />
-    <input type="button" value="Add Tag" ng-click="addTagDiv()" />
-
-    <div>
-        <p>Tags List</p>
+    <div ng-controller="tagController">
+        <input type="button" value="Add Tag" ng-click="addTagDiv()" style="float:right" />
+        <div ng-show="divTag">
+            <table>
+                <tr>
+                    <td><b>Name</b></td>
+                    <td>
+                        <input type="text" ng-model="tagName" required />
+                    </td>
+                    <td>
+                        <input type="hidden" ng-model="tagId" />
+                        <input type="button" value="Save" ng-click="AddEditTag()" />
+                    </td>
+                </tr>
+            </table>
+        </div>
         <table class="table table-bordered table-hover">
-            <th>
+            <tr>
                 <td><b>Name</b></td>
                 <td>Actions</td>
-            </th>
+            </tr>
             <tr ng-repeat="tag in myTags">
                 <td>
                     {{tag.Name}}
@@ -21,131 +32,104 @@
         </table>
     </div>
 </div>
-
-<div ng-show="divTag">
-    <p>{{Action}} Tag</p>
-    <table>
-        <tr>
-            <td><b>Name</b></td>
-            <td>
-                <input type="text" ng-model="tagName" required />
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <input type="hidden" ng-model="tagId" />
-                <input type="button" value="Save" ng-click="AddEditTag()" />
-            </td>
-        </tr>
-    </table>
-</div>
-
+    
 @section Scripts {
-    <script src="~/Scripts/angular.min.js"></script>
     <script>
-        $(function () {
-            var app = angular.module("MyTags", []);
-            app.service('tagService', function ($http) {
-                this.getTags = function () {
-                    debugger;
-                    return $http.get('@Url.Action("getAll", "MyTags")');
+        angular.module("myTags", []).service('tagService', function ($http) {
+            this.getTags = function () {
+                return $http.get('@Url.Action("getAll", "MyTags")');
+            }
+            this.getTag = function (tagId) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("getById", "MyTags")',
+                    params: {
+                        id: tagId
+                    }
+                });
+                return response;
+            }
+            this.addTag = function (tag) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("create", "MyTags")',
+                    data: JSON.stringify(tag),
+                    dataType: 'json'
+                });
+                return response;
+            }
+            this.editTag = function (tag) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("update", "MyTags")',
+                    data: JSON.stringify(tag),
+                    dataType: 'json'
+                });
+                return response;
+            }
+        }).controller('tagController', function ($scope, tagService) {
+            $scope.divTag = false;
+            getAllTags();
+            function getAllTags() {
+                var getData = tagService.getTags();
+                getData.then(function (tags) {
+                    $scope.myTags = tags.data;
+                }, function () {
+                    alert('Error in getting MyTags records');
+                });
+            }
+            $scope.addTag = function () {
+                clearFields();
+                $scope.action = 'add';
+                $scope.divTag = true;
+            }
+            $scope.editTag = function (tag) {
+                var getData = tagService.getTag(tag.id);
+                getData.then(function (tag) {
+                    $scope.tagId = tag.id;
+                    $scope.tagName = tag.Name;
+                    $scope.action = 'edit';
+                    $scope.divTag = true;
+                }, function () {
+                    alert('Error in getting MyTags records');
+                });
+            }
+            $scope.AddEditTag = function () {
+                var tag = {
+                    Name: $scope.tagName
                 }
-                this.getTag = function (tagId) {
-                    var response = $http({
-                        method: 'post',
-                        url: '@Url.Action("getById", "MyTags")',
-                        params: {
-                            id: tagId
-                        }
+                var getAction = $scope.action;
+                if (getAction == 'add') {
+                    var getData = tagService.addTag(tag);
+                    getData.then(function (msg) {
+                        getAllTags();
+                        alert(msg.data);
+                        $scope.divTag = false;
+                    }, function () {
+                        alert('Error in getting MyTags records');
                     });
-                    return response;
-                }
-                this.addTag = function (tag) {
-                    var response = $http({
-                        method: 'post',
-                        url: '@Url.Action("create", "MyTags")',
-                        data: JSON.stringify(tag),
-                        dataType: 'json'
-                    });
-                    return response;
-                }
-                this.editTag = function (tag) {
-                    var response = $http({
-                        method: 'post',
-                        url: '@Url.Action("update", "MyTags")',
-                        data: JSON.stringify(tag),
-                        dataType: 'json'
-                    });
-                    return response;
-                }
-            });
-            app.controller('tagController', function ($scope, tagService) {
-                $scope.divTag = false;
-                getAllTas();
-                function getAllTags() {
-                    debugger;
-                    var getData = tagService.getTags();
-                    debugger;
-                    getData.then(function (tags) {
-                        $scope.myTags = tags.data;
+                } else {
+                    tag.id = $scope.tagId;
+                    var getData = tagService.editTag(tag);
+                    getData.then(function (msg) {
+                        getAllTags();
+                        alert(msg.data);
+                        $scope.divTag = false;
                     }, function () {
                         alert('Error in getting MyTags records');
                     });
                 }
-                $scope.addTag = function () {
-                    clearFields();
-                    $scope.action = 'add';
-                    $scope.divTag = true;
-                }
-                $scope.editTag = function (tag) {
-                    debugger;
-                    var getData = tagService.getTag(tag.id);
-                    getData.then(function (tag) {
-                        $scope.tagId = tag.id;
-                        $scope.tagName = tag.Name;
-                        $scope.action = 'edit';
-                        $scope.divTag = true;
-                    }, function () {
-                        alert('Error in getting MyTags records');
-                    });
-                }
-                $scope.AddEditTag = function () {
-                    debugger;
-                    var tag = {
-                        Name: $scope.tagName
-                    }
-                    var getAction = $scope.action;
-                    if (getAction == 'add') {
-                        var getData = tagService.addTag(tag);
-                        getData.then(function (msg) {
-                            getAllTags();
-                            alert(msg.data);
-                            $scope.divTag = false;
-                        }, function () {
-                            alert('Error in getting MyTags records');
-                        });
-                    } else {
-                        tag.id = $scope.tagId;
-                        var getData = tagService.editTag(tag);
-                        getData.then(function (msg) {
-                            getAllTags();
-                            alert(msg.data);
-                            $scope.divTag = false;
-                        }, function () {
-                            alert('Error in getting MyTags records');
-                        });
-                    }
-                }
-                $scope.addTagDiv = function () {
-                    clearFields();
-                    $scope.action = 'add';
-                    $scope.divTag = true;
-                }
-                function clearFields() {
-                    $scope.tagId = '';
-                    $scope.tagName = '';
-                }
-            });
-         });
-   </script>
+            }
+            $scope.addTagDiv = function () {
+                debugger;
+                clearFields();
+                $scope.action = 'add';
+                $scope.divTag = true;
+            }
+            function clearFields() {
+                $scope.tagId = '';
+                $scope.tagName = '';
+            }
+        });
+    </script>
 }
