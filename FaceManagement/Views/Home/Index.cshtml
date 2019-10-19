@@ -5,6 +5,7 @@
 <script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
+<button id="Check" style="position:fixed;left:1em;bottom:1em;display:none">Check in (60s)</button>
 
 @if (!Request.IsAuthenticated)
 {
@@ -254,22 +255,35 @@
             faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
             if (faceMatcher != null) {
                 const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
-                A = results;
-                B = detections;
                 var distance = 1;
                 var descriptor = null;
+                var found = false;
                 results.forEach((result, i) => {
                     const box = resizedDetections[i].detection.box;
                     const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
                     drawBox.draw(canvas);
-                    if (result.label == USERID && result.distance < distance) {
-                        distance = result.distance;
-                        descriptor = detections[i].descriptor;
+                    if (result.label == USERID) {
+                        if (result.distance < distance) {
+                            distance = result.distance;
+                            descriptor = detections[i].descriptor;
+                        }
+                        found = true;
                     }
                     if (i == results.length - 1) {
                         if (distance < 1) {
                             if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
                                 localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
+                        }
+                        if (found == true) {
+                            var check = $('#Check').attr('time', 60).show();
+                            var interval = setInterval(function () {
+                                var time = check.attr('time') - 1;
+                                check.attr('time', time).text(`Check in (${time}s)`);
+                                if (time <= 0) {
+                                    clearInterval(interval);
+                                    check.fadeToggle("slow", "linear");
+                                }
+                            }, 1000);
                         }
                     }
                 });

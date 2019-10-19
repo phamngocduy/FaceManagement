@@ -25,5 +25,7 @@ namespace FaceManagement.Models
             throw new UnintentionalCodeFirstException();
         }
     
+        public virtual DbSet<MyClass> MyClasses { get; set; }
+        public virtual DbSet<MyTag> MyTags { get; set; }
     }
 }
