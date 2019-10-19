@@ -3,7 +3,7 @@
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
 <script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
-<input id="Upload" type="file" style="display:none" />
+<input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 
 @section Scripts {
