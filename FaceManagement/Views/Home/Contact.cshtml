@@ -1,20 +1,236 @@
-﻿@{
-    ViewBag.Title = User.Identity.GetUserName();
-    var UserId = User.Identity.GetUserName() ?? "";
-    UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
-}
-<img id="Avatar" src="" />
+﻿<div ng-app="myApp" ng-controller="myController">
+    <input type="button" value="Add Tag" ng-click="addTag()" style="float:right" />
+    <div ng-show="divTag">
+        <table>
+            <tr>
+                <td><b>Tag's Name</b></td>
+                <td>
+                    <input type="text" ng-model="tagName" required />
+                </td>
+                <td>
+                    <input type="hidden" ng-model="tagId" />
+                    <input type="button" value="Save" ng-click="AddEditTag()" />
+                    <input type="button" value="Cancel" ng-click="cancelTag()" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <ul class="nav nav-tabs">
+        <li class="{{tag.id === tagId ? 'active' : null}}" ng-repeat="tag in myTags">
+            <a data-toggle="tab" href="#{{tag.id}}">{{tag.Name}}</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="{{tag.id}}" class="tab-pane fade {{tag.id === tagId ? 'in active' : null}}" ng-repeat="tag in myTags">
+            <input type="button" value="Delete!!!" ng-click="" style="float:right" />
+            <input type="button" value="Edit Tag" ng-click="editTag(tag)" style="float:right" />
+            <input type="button" value="Add Class" ng-click="addClass(tag.id)" style="float:right" />
+            <div ng-show="divClass">
+                <table>
+                    <tr>
+                        <td><b>Class's Title</b></td>
+                        <td>
+                            <input type="text" ng-model="classTitle" required />
+                        </td>
+                        <td>
+                            <input type="hidden" ng-model="classId" />
+                            <input type="button" value="Save" ng-click="AddEditClass(classTitle)" />
+                            <input type="button" value="Cancel" ng-click="cancelClass()" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Position at</b></td>
+                        <td><a href="https://maps.google.com/?q={{latitude}},{{longitude}}" target="_blank">{{latitude}},{{longitude}}</a></td>
+                    </tr>
+                </table>
+            </div>
+            <table class="table table-bordered table-hover">
+                <tr>
+                    <td><b>Date</b></td>
+                    <td><b>Code</b></td>
+                    <td><b>Title</b></td>
+                    <td>Actions</td>
+                </tr>
+                <tr ng-repeat="class in myClasses.get(tag.id)">
+                    <td>{{showDate(class.date)}}</td>
+                    <td>{{showCode(class)}}</td>
+                    <td>{{class.Title}}</td>
+                    <td>
+                        <button ng-click="editTag(tag)">Edit</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        $(function () {
-            var USERID = '@UserId';
-            if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
-                var path = USERID.match(/[a-z]+/)[0];
-                paths = USERID.split(path);
-                USERID = paths[0] + '/' + path + '/' + paths[1];
+        angular.module('myApp', []).service('myService', function ($http) {
+            this.getTags = function () {
+                return $http.get('@Url.Action("getAll", "MyTags")');
             }
-            $('#Avatar').attr('src', `@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
+            this.getTag = function (tagId) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("getById", "MyTags")',
+                    params: {
+                        id: tagId
+                    }
+                });
+                return response;
+            }
+            this.addTag = function (tag) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("create", "MyTags")',
+                    data: JSON.stringify(tag),
+                    dataType: 'json'
+                });
+                return response;
+            }
+            this.editTag = function (tag) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("update", "MyTags")',
+                    data: JSON.stringify(tag),
+                    dataType: 'json'
+                });
+                return response;
+            }
+            this.getClasses = function (tagId) {
+                return $http.get(`@Url.Action("getByTag", "MyClasses")?tagId=${tagId}`);
+            }
+            this.addClass = function ($class) {
+                var response = $http({
+                    method: 'post',
+                    url: '@Url.Action("create", "MyClasses")',
+                    data: JSON.stringify($class),
+                    dataType: 'json'
+                });
+                return response;
+            }
+        }).controller('myController', function ($scope, myService) {
+            $scope.divTag = false;
+            $scope.divClass = false;
+            getAllClasses();
+            function getAllClasses() {
+                myService.getTags().then(function (tags) {
+                    $scope.myTags = tags.data;
+                    $scope.myClasses = new Map();
+                    tags.data.forEach(function (tag) {
+                        myService.getClasses(tag.id).then(function (classes) {
+                            $scope.myClasses.set(tag.id, classes.data);
+                        });
+                    })
+                    if ($scope.action == 'addTag')
+                        $scope.tagId = tags.data[tags.data.length - 1].id;
+                    getPosition();
+                }, function () {
+                    alert('Error in getting MyTags records');
+                });
+            }
+            $scope.addTag = function () {
+                clearFields();
+                $scope.action = 'addTag';
+                $scope.divTag = true;
+            }
+            $scope.editTag = function (tag) {
+                myService.getTag(tag.id).then(function (tag) {
+                    $scope.tagId = tag.data.id;
+                    $scope.tagName = tag.data.Name;
+                    $scope.action = 'editTag';
+                    $scope.divTag = true;
+                }, function () {
+                    alert('Error in getting MyTags records');
+                });
+            }
+            $scope.AddEditTag = function () {
+                var tag = {
+                    Name: $scope.tagName
+                }
+                if ($scope.action == 'addTag') {
+                    myService.addTag(tag).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                        $scope.divTag = false;
+                    }, function () {
+                        alert('Error in getting MyTags records');
+                    });
+                } else {
+                    tag.id = $scope.tagId;
+                    myService.editTag(tag).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                        $scope.divTag = false;
+                    }, function () {
+                        alert('Error in getting MyTags records');
+                    });
+                }
+            }
+            $scope.cancelTag = function () {
+                clearFields();
+                $scope.divTag = false;
+            }
+            function clearFields() {
+                $scope.tagId = '';
+                $scope.tagName = '';
+                $scope.classTitle = '';
+            }
+            $scope.cancelClass = function () {
+                clearFields();
+                $scope.divClass = false;
+            }
+            $scope.addClass = function (tagId) {
+                clearFields();
+                $scope.action = 'addClass';
+                $scope.divClass = true;
+                $scope.tagId = tagId;
+                getPosition();
+            }
+            $scope.AddEditClass = function (classTitle) {
+                var $class = {
+                    Tag_id: $scope.tagId,
+                    Title: classTitle,
+                    Latitude: $scope.latitude,
+                    Longitude: $scope.longitude
+                }
+                if ($scope.action == 'addClass') {
+                    myService.addClass($class).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                        $scope.divClass = false;
+                    }, function () {
+                        alert('Error in getting MyClasses records');
+                    });
+                } else {
+                    $class.id = $scope.classId;
+                    myService.editClass($class).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                        $scope.divTag = false;
+                    }, function () {
+                        alert('Error in getting MyClasses records');
+                    });
+                }
+            }
+            function getPosition() {
+                if (navigator.geolocation)
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        $scope.latitude = position.coords.latitude;
+                        $scope.longitude = position.coords.longitude;
+                    });
+            }
+            $scope.showDate = function (str) {
+                return new Date(parseInt(str.replace('/Date(', '').replace(')/', ''))).toDateString();
+            }
+            $scope.showCode = function ($class) {
+                if ($class.stop == false) {
+                    var latitude = Math.round(parseFloat($class.Latitude)*100);
+                    var longitude = Math.round(parseFloat($class.Longitude)*100);
+                    return `${$class.id}-${latitude}-${longitude}`;
+                } else return 'Closed';
+            }
         });
     </script>
 }

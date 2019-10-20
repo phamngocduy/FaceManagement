@@ -7,64 +7,62 @@ using FaceManagement.Models;
 
 namespace FaceManagement.Controllers
 {
-    public class MyTagsController : Controller
+    public class MyClassesController : Controller
     {
-        public ActionResult Index()
-        {
-            return View();
-        }
-
         FaceIDEntities db = new FaceIDEntities();
 
-        public JsonResult getAll()
+        public JsonResult getByTag(int tagId)
         {
-            var tags = db.MyTags.ToList();
-            tags.ForEach(t => t.MyClasses.Clear());
-            return Json(tags, JsonRequestBehavior.AllowGet);
+            var model = db.MyClasses.Where(c => c.Tag_id == tagId).ToList();
+            model.ForEach(c => c.MyTag = new MyTag());
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult getById(int id)
         {
-            var tag = db.MyTags.Find(id);
-            tag.MyClasses.Clear();
-            return Json(tag, JsonRequestBehavior.AllowGet);
+            var model = db.MyClasses.Find(id);
+            model.MyTag = new MyTag();
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
-        public string create(MyTag tag)
-        {
-            if (tag != null)
-            {
-                try
-                {
-                    db.MyTags.Add(tag);
-                    db.SaveChanges();
-                    return "Tag Created";
-                }
-                catch (Exception e)
-                {
-                    return e.GetBaseException().Message;
-                }
-            }
-            else return "Invalid Tag";
-        }
-
-        public string update(MyTag model)
+        public string create(MyClass model)
         {
             if (model != null)
             {
                 try
                 {
-                    var tag = db.MyTags.Find(model.id);
-                    tag.Name = model.Name;
+                    model.date = DateTime.Now;
+                    model.stop = false;
+                    db.MyClasses.Add(model);
                     db.SaveChanges();
-                    return "Tag Updated";
+                    return "Class Created";
                 }
                 catch (Exception e)
                 {
                     return e.GetBaseException().Message;
                 }
             }
-            else return "Invalid Tag";
+            else return "Invalid Class";
+        }
+
+        public string update(MyClass model)
+        {
+            if (model != null)
+            {
+                try
+                {
+                    var obj = db.MyClasses.Find(model.id);
+                    obj.stop = model.stop;
+                    obj.Title = model.Title;
+                    db.SaveChanges();
+                    return "Class Updated";
+                }
+                catch (Exception e)
+                {
+                    return e.GetBaseException().Message;
+                }
+            }
+            else return "Invalid Class";
         }
 
         protected override void Dispose(bool disposing)

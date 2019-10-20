@@ -1,7 +1,7 @@
 ﻿<div ng-app="myTags">
     <h1>My Tags</h1>
     <div ng-controller="tagController">
-        <input type="button" value="Add Tag" ng-click="addTagDiv()" style="float:right" />
+        <input type="button" value="Add Tag" ng-click="addTag()" style="float:right" />
         <div ng-show="divTag">
             <table>
                 <tr>
@@ -26,7 +26,7 @@
                     {{tag.Name}}
                 </td>
                 <td>
-                    <span ng-click="editTag(tag)">Edit</span>
+                    <button ng-click="editTag(tag)">Edit</button>
                 </td>
             </tr>
         </table>
@@ -86,8 +86,8 @@
             $scope.editTag = function (tag) {
                 var getData = tagService.getTag(tag.id);
                 getData.then(function (tag) {
-                    $scope.tagId = tag.id;
-                    $scope.tagName = tag.Name;
+                    $scope.tagId = tag.data.id;
+                    $scope.tagName = tag.data.Name;
                     $scope.action = 'edit';
                     $scope.divTag = true;
                 }, function () {
@@ -119,12 +119,6 @@
                         alert('Error in getting MyTags records');
                     });
                 }
-            }
-            $scope.addTagDiv = function () {
-                debugger;
-                clearFields();
-                $scope.action = 'add';
-                $scope.divTag = true;
             }
             function clearFields() {
                 $scope.tagId = '';
