@@ -275,7 +275,7 @@
                                 localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                         }
                         if (found == true) {
-                            var check = $('#Check').attr('time', 60).show();
+                            var check = $('#Check').attr('time', 30).show();
                             var interval = setInterval(function () {
                                 var time = check.attr('time') - 1;
                                 check.attr('time', time).text(`Check in (${time}s)`);
@@ -289,6 +289,27 @@
                 });
             }
             unblockUI();
+        }
+
+        document.getElementById('Check').onclick = function () {
+            var code = prompt("Enter class's code:");
+            if (code == null) return; else $.blockUI();
+            document.getElementById('Canvas').toBlob(function (image) {
+                var form = new FormData();
+                form.append('code', code);
+                form.append('face', image);
+                form.append('user', USERID);
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Upload", "Home")',
+                    data: form,
+                    processData: false,
+                    contentType: false
+                }).done(function (data) {
+                    alert(data);
+                    location.replace(`@Url.Content("~/App_Data/Checks/")${code.split('-')[0]}/${USERID}.jpg`);
+                });
+            }, 'image/jpeg');
         }
     </script>
 
