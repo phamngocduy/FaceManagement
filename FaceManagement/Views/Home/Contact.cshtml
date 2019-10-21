@@ -22,7 +22,7 @@
     </ul>
     <div class="tab-content">
         <div id="{{tag.id}}" class="tab-pane fade {{tag.id === tagId ? 'in active' : null}}" ng-repeat="tag in myTags">
-            <input type="button" value="Delete!!!" ng-click="" style="float:right" />
+            <input type="button" value="Delete!!!" ng-click="delTag(tag)" style="float:right" />
             <input type="button" value="Edit Tag" ng-click="editTag(tag)" style="float:right" />
             <input type="button" value="Add Class" ng-click="addClass(tag.id)" style="float:right" />
             <div ng-show="divClass">
@@ -40,7 +40,12 @@
                     </tr>
                     <tr>
                         <td><b>Position at</b></td>
-                        <td><a href="https://maps.google.com/?q={{latitude}},{{longitude}}" target="_blank">{{latitude}},{{longitude}}</a></td>
+                        <td>
+                            <a href="https://maps.google.com/?q={{latitude}},{{longitude}}" target="_blank" id="place" latitude="{{latitude}}" longitude="{{longitude}}">View on Map</a>
+                        </td>
+                        <td>
+                            <input type="button" value="{{stop === false ? 'Disable' : 'Enable'}}" ng-click="stopClass(classId)" ng-show="btnStop" />
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -56,7 +61,8 @@
                     <td>{{showCode(class)}}</td>
                     <td>{{class.Title}}</td>
                     <td>
-                        <button ng-click="editTag(tag)">Edit</button>
+                        <button ng-click="editClass(class)">Edit</button>
+                        <button ng-click="delClass(class)">Delete</button>
                     </td>
                 </tr>
             </table>
@@ -71,44 +77,63 @@
                 return $http.get('@Url.Action("getAll", "MyTags")');
             }
             this.getTag = function (tagId) {
-                var response = $http({
+                return $http({
                     method: 'post',
                     url: '@Url.Action("getById", "MyTags")',
                     params: {
                         id: tagId
                     }
                 });
-                return response;
             }
             this.addTag = function (tag) {
-                var response = $http({
+                return $http({
                     method: 'post',
                     url: '@Url.Action("create", "MyTags")',
                     data: JSON.stringify(tag),
                     dataType: 'json'
                 });
-                return response;
             }
             this.editTag = function (tag) {
-                var response = $http({
+                return $http({
                     method: 'post',
                     url: '@Url.Action("update", "MyTags")',
                     data: JSON.stringify(tag),
                     dataType: 'json'
                 });
-                return response;
+            }
+            this.delTag = function (tagId) {
+                return $http.post(`@Url.Action("delete", "MyTags")?id=${tagId}`);
             }
             this.getClasses = function (tagId) {
                 return $http.get(`@Url.Action("getByTag", "MyClasses")?tagId=${tagId}`);
             }
+            this.getClass = function (classId) {
+                return $http({
+                    method: 'post',
+                    url: '@Url.Action("getById", "MyClasses")',
+                    params: {
+                        id: classId
+                    }
+                });
+            }
             this.addClass = function ($class) {
-                var response = $http({
+                return $http({
                     method: 'post',
                     url: '@Url.Action("create", "MyClasses")',
                     data: JSON.stringify($class),
                     dataType: 'json'
                 });
-                return response;
+            }
+            this.editClass = function ($class) {
+                return $http({
+                    method: 'post',
+                    url: '@Url.Action("update", "MyClasses")',
+                    data: JSON.stringify($class),
+                    dataType: 'json'
+                });
+            }
+            this.delClass = function (classId) {
+                return $http.post(`@Url.Action("delete", "MyClasses")?id=${classId}`);
             }
         }).controller('myController', function ($scope, myService) {
             $scope.divTag = false;
@@ -168,6 +193,15 @@
                     });
                 }
             }
+            $scope.delTag = function (tag) {
+                if (prompt("Do you want to delete this tag with its all classes? If Yes then type the tag's name here:") == tag.Name)
+                    myService.delTag(tag.id).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                    }, function () {
+                        alert('Error in getting MyTags records');
+                    });
+            }
             $scope.cancelTag = function () {
                 clearFields();
                 $scope.divTag = false;
@@ -185,8 +219,28 @@
                 clearFields();
                 $scope.action = 'addClass';
                 $scope.divClass = true;
+                $scope.btnDisable = false;
                 $scope.tagId = tagId;
                 getPosition();
+            }
+            $scope.editClass = function ($class) {
+                myService.getClass($class.id).then(function ($class) {
+                    $scope.classId = $class.data.id;
+                    $scope.tagId = $class.data.Tag_id;
+                    $scope.classTitle = $class.data.Title;
+                    $scope.latitude = $class.data.Latitude;
+                    $scope.longitude = $class.data.Longitude;
+                    $scope.stop = $class.data.stop;
+                    $scope.action = 'editClass';
+                    $scope.divClass = true;
+                    $scope.btnStop = true;
+                    // show place
+                    $.get(`https://locationiq.org/v1/reverse.php?key=c81b170bd5903d&lat=${$scope.latitude}&lon=${$scope.longitude}&format=json`, function (data) {
+                        $('a:visible[id=place]').text(data.display_name.substr(0, 25));
+                    });
+                }, function () {
+                    alert('Error in getting MyClasses records');
+                });
             }
             $scope.AddEditClass = function (classTitle) {
                 var $class = {
@@ -205,14 +259,39 @@
                     });
                 } else {
                     $class.id = $scope.classId;
+                    $class.stop = $scope.stop;
                     myService.editClass($class).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divTag = false;
+                        $scope.divClass = false;
                     }, function () {
                         alert('Error in getting MyClasses records');
                     });
                 }
+            }
+            $scope.delClass = function ($class) {
+                if (prompt("Do you want to delete this class with its all data? If Yes then type the class's title here:") == $class.Title)
+                    myService.delClass($class.id).then(function (msg) {
+                        $scope.tagId = $class.Tag_id;
+                        getAllClasses();
+                        alert(msg.data);
+                    }, function () {
+                        alert('Error in getting MyClasses records');
+                    });
+            }
+            $scope.stopClass = function (classId) {
+                myService.getClass(classId).then(function ($class) {
+                    $class.data.stop = !$scope.stop;
+                    myService.editClass($class.data).then(function (msg) {
+                        getAllClasses();
+                        alert(msg.data);
+                        $scope.divClass = false;
+                    }, function () {
+                        alert('Error in getting MyClasses records');
+                    });
+                }, function () {
+                    alert('Error in getting MyClasses records');
+                });
             }
             function getPosition() {
                 if (navigator.geolocation)

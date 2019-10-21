@@ -65,6 +65,20 @@ namespace FaceManagement.Controllers
             else return "Invalid Class";
         }
 
+        public string delete(int id)
+        {
+            try
+            {
+                db.MyClasses.Remove(db.MyClasses.Find(id));
+                db.SaveChanges();
+                return "Class Deleted";
+            }
+            catch (Exception e)
+            {
+                return e.GetBaseException().Message;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             db.Dispose();

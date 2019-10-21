@@ -67,6 +67,22 @@ namespace FaceManagement.Controllers
             else return "Invalid Tag";
         }
 
+        public string delete(int id)
+        {
+            try
+            {
+                var tag = db.MyTags.Find(id);
+                db.MyClasses.RemoveRange(tag.MyClasses);
+                db.MyTags.Remove(tag);
+                db.SaveChanges();
+                return "Tag Deleted";
+            }
+            catch (Exception e)
+            {
+                return e.GetBaseException().Message;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             db.Dispose();
