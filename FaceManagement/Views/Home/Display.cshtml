@@ -1,0 +1,40 @@
+﻿@model string[]
+
+<div class="container">
+    <h3 class="font-weight-light text-center text-lg-left mt-4 mb-0">Thumbnail Gallery</h3>
+    <hr class="mt-2 mb-5">
+    <div class="row text-center text-lg-left">
+        @foreach (var file in Model)
+        {
+            <div class="col-lg-2 col-md-3 col-xs-4">
+                <a href="#" onclick="showImage(this)" class="d-block mb-4 h-100">
+                    <img class="img-fluid img-thumbnail" src="@Url.Content("~/App_Data" + file.Split(new string[] { "App_Data" }, StringSplitOptions.RemoveEmptyEntries).Last())" alt="">
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Modal Header</h4>
+            </div>
+            <div class="modal-body">
+                <img class="modal-image" style="width:100%" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showImage(elem) {
+        var image = $(elem).find('img').attr('src');
+        $('.modal-title').text(image.split('/').reverse()[0]);
+        $('.modal-image').attr('src', image);
+        $('#myModal').modal();
+    }
+</script>

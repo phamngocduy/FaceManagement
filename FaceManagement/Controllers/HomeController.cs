@@ -43,5 +43,12 @@ namespace FaceManagement.Controllers
                 return e.GetBaseException().Message;
             }
         }
+
+        public ViewResult Display(string id)
+        {
+            var path = "~/App_Data/Checks/";
+            var files = Directory.GetFiles(Path.Combine(Server.MapPath(path), id));
+            return View(files);
+        }
     }
 }

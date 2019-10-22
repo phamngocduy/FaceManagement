@@ -1100,6 +1100,7 @@
     <Content Include="Static\ssd_mobilenetv1_model-weights_manifest.json" />
     <Content Include="Views\MyTags\Index.cshtml" />
     <Content Include="Scripts\version.json" />
+    <Content Include="Views\Home\Display.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
