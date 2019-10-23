@@ -114,6 +114,8 @@ namespace Microsoft.Owin.Security.VanLang
                 //TO-DO: fix bug 
 
                 var idClaim = context.Identity.FindFirst(ClaimTypes.NameIdentifier);
+                
+                //if (HttpContext.Current != null)
                 HttpContext.Current.Session["ExternalLoginInfo"] = new ExternalLoginInfo
                 {
                     ExternalIdentity = context.Identity,
@@ -121,8 +123,7 @@ namespace Microsoft.Owin.Security.VanLang
                     DefaultUserName = defaultUserName,
                     Email = email
                 };
-
-
+                
                 context.Properties = properties;
 
                 await Options.Provider.Authenticated(context);

@@ -2,7 +2,7 @@
     var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
-<script async src="@Url.Content("~/Scripts/face_api.min.js")"></script>
+<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 <button id="Check" style="position:fixed;left:1em;bottom:1em;display:none">Check in (60s)</button>
@@ -200,15 +200,12 @@
                             if (detections != undefined)
                                 localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
                             else throw 'Face not found';
+                            loadFaceID();
                         }).fail(function () {
+                            faceMatcher = null;
                             throw 'You should login';
                         });
-                    }
-                    const descriptor = [new Float32Array(JSON.parse(localStorage.getItem(USERID)))];
-                    if (localStorage.getItem(`${USERID}2`) != null)
-                        descriptor.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${USERID}2`)).descriptor)));
-                    const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, descriptor);
-                    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.5 : 0.45);
+                    } else loadFaceID();
                 } catch (err) {
                     console.error(err);
                     @if (Request.IsAuthenticated)
@@ -221,6 +218,14 @@
                 unblockUI();
             }
             setTimeout(loadLibrary, 0);
+        }
+
+        function loadFaceID() {
+            const descriptor = [new Float32Array(JSON.parse(localStorage.getItem(USERID)))];
+            if (localStorage.getItem(`${USERID}2`) != null)
+                descriptor.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${USERID}2`)).descriptor)));
+            const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, descriptor);
+            faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.5 : 0.45);
         }
 
         function unblockUI() {
