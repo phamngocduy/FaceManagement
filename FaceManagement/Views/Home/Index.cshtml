@@ -140,7 +140,7 @@
         })
     </script>
     <script>
-        $.blockUI({ message: '<h1><img src="@Url.Content("~/Content/busy.gif")" /> Loading ...<span id="Progress">1</span>/7</h1>' });
+        $.blockUI({ message: '<h1><img src="@Url.Content("~/Content/busy.gif")" /> Loading ...<span id="Progress">5</span></h1>' });
         window.onload = function () {
             USERID = '@UserId';
             NOW = Date.now();
@@ -152,16 +152,23 @@
             function showProgress(val) {
                 $('#Progress').text(val);
             }
-            Promise.all([
-                //faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'), showProgress(1),
-                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'), showProgress(2),
-                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'), showProgress(3),
-                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'), showProgress(4),
-                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'), showProgress(5),
-                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'), showProgress(6)
-            ]).then(async function () {
+            var libraries = [
+                //faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
+                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'),
+            ];
+            async function loadLibrary() {
+                if (libraries.length > 0) {
+                    showProgress(libraries.length);
+                    var library = libraries.pop();
+                    eval(library).then(loadLibrary);
+                    return;
+                }
                 console.log('Finished in ' + (Date.now() - NOW));
-                NOW = Date.now(); showProgress(7);
+                NOW = Date.now(); showProgress(0);
                 MTCNN = new faceapi.MtcnnOptions();
                 SSDMOBILENETV1 = new faceapi.SsdMobilenetv1Options();
                 TINYFACEDETECTOR = new faceapi.TinyFaceDetectorOptions();
@@ -212,7 +219,8 @@
                 }
 
                 unblockUI();
-            });
+            }
+            setTimeout(loadLibrary, 0);
         }
 
         function unblockUI() {
