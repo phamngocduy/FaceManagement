@@ -1,5 +1,4 @@
 ﻿@{
-    ViewBag.Title = User.Identity.GetUserName();
     var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
@@ -18,7 +17,7 @@
             if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
                 var path = USERID.match(/[a-z]+/)[0];
                 paths = USERID.split(path);
-                USERID = paths[0] + '/' + path + '/' + paths[1];
+                USERID = paths[0] + '/' + path + '/' + USERID;
             }
             $('#Avatar').attr('src', `@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
         });

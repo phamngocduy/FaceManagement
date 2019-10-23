@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FaceManagement.Models;
+using Microsoft.AspNet.SignalR;
 
 namespace FaceManagement.Controllers
 {
@@ -36,6 +37,7 @@ namespace FaceManagement.Controllers
                 var path = "~/App_Data/Checks/";
                 Directory.CreateDirectory(Path.Combine(Server.MapPath(path), code));
                 face.SaveAs(Path.Combine(Server.MapPath(path), code, user + ".jpg"));
+                GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
                 return "Check in successfully";
 
             } catch (Exception e)

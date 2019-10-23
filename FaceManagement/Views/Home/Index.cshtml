@@ -2,7 +2,7 @@
     var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
-<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
+<script async src="@Url.Content("~/Scripts/face_api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 <button id="Check" style="position:fixed;left:1em;bottom:1em;display:none">Check in (60s)</button>
@@ -172,7 +172,7 @@
                         if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
                             var path = USERID.match(/[a-z]+/)[0];
                             paths = USERID.split(path);
-                            USERID = paths[0] + '/' + path + '/' + paths[1];
+                            USERID = paths[0] + '/' + path + '/' + USERID;
                         }
                         @*
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
