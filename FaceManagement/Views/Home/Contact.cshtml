@@ -1,19 +1,57 @@
 ﻿<div ng-app="myApp" ng-controller="myController">
     <input type="button" value="Add Tag" ng-click="addTag()" style="float:right" />
-    <div ng-show="divTag">
-        <table>
-            <tr>
-                <td><b>Tag's Name</b></td>
-                <td>
-                    <input type="text" ng-model="tagName" required />
-                </td>
-                <td>
+    <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">{{action}} Class</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="className">Class's Name</label>
+                        <input type="text" class="form-control" id="className" ng-model="tagName" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
                     <input type="hidden" ng-model="tagId" />
-                    <input type="button" value="Save" ng-click="AddEditTag()" />
-                    <input type="button" value="Cancel" ng-click="cancelTag()" />
-                </td>
-            </tr>
-        </table>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" ng-click="cancelTag()">Close</button>
+                    <button type="button" class="btn btn-primary" ng-click="AddEditTag()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">{{action}} Session</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="text-align:-webkit-center">
+                        <label for="sessionTitle">Session's Title</label>
+                        <input type="text" class="form-control" id="sessionTitle" ng-model="classTitle" required style="text-align:center">
+                    </div>
+                    <div class="form-group">
+                        <label>Position is at</label>
+                        <div>
+                            <a href="https://maps.google.com/?q={{latitude}},{{longitude}}" target="_blank" id="place" latitude="{{latitude}}" longitude="{{longitude}}">View on Map</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" ng-model="classId" />
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" ng-click="cancelClass()">Close</button>
+                    <button type="button" class="btn btn-primary" ng-click="AddEditClass(classTitle)">Save changes</button>
+                    <button type="button" class="btn btn-warning" ng-click="stopClass(classId)" ng-show="btnStop" style="float:left">{{stop === false ? 'Disable' : 'Enable'}}</button>
+                </div>
+            </div>
+        </div>
     </div>
     <ul class="nav nav-tabs">
         <li class="{{tag.id === tagId ? 'active' : null}}" ng-repeat="tag in myTags">
@@ -25,30 +63,6 @@
             <input type="button" value="Delete!!!" ng-click="delTag(tag)" style="float:right" />
             <input type="button" value="Edit Tag" ng-click="editTag(tag)" style="float:right" />
             <input type="button" value="Add Class" ng-click="addClass(tag.id)" style="float:right" />
-            <div ng-show="divClass">
-                <table>
-                    <tr>
-                        <td><b>Class's Title</b></td>
-                        <td>
-                            <input type="text" ng-model="classTitle" required />
-                        </td>
-                        <td>
-                            <input type="hidden" ng-model="classId" />
-                            <input type="button" value="Save" ng-click="AddEditClass(classTitle)" />
-                            <input type="button" value="Cancel" ng-click="cancelClass()" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Position at</b></td>
-                        <td>
-                            <a href="https://maps.google.com/?q={{latitude}},{{longitude}}" target="_blank" id="place" latitude="{{latitude}}" longitude="{{longitude}}">View on Map</a>
-                        </td>
-                        <td>
-                            <input type="button" value="{{stop === false ? 'Disable' : 'Enable'}}" ng-click="stopClass(classId)" ng-show="btnStop" />
-                        </td>
-                    </tr>
-                </table>
-            </div>
             <table class="table table-bordered table-hover">
                 <tr>
                     <td><b>Date</b></td>
@@ -61,6 +75,7 @@
                     <td>{{showCode(class)}}</td>
                     <td>{{class.Title}}</td>
                     <td>
+                        <a class="btn" href="@Url.Action("Display", "Home")/{{class.id}}"><b>View</b></a>
                         <button ng-click="editClass(class)">Edit</button>
                         <button ng-click="delClass(class)">Delete</button>
                     </td>
@@ -136,8 +151,6 @@
                 return $http.post(`@Url.Action("delete", "MyClasses")?id=${classId}`);
             }
         }).controller('myController', function ($scope, myService) {
-            $scope.divTag = false;
-            $scope.divClass = false;
             getAllClasses();
             function getAllClasses() {
                 myService.getTags().then(function (tags) {
@@ -157,15 +170,15 @@
             }
             $scope.addTag = function () {
                 clearFields();
-                $scope.action = 'addTag';
-                $scope.divTag = true;
+                $scope.action = 'Create';
+                $('.bd-example-modal-sm').modal();
             }
             $scope.editTag = function (tag) {
                 myService.getTag(tag.id).then(function (tag) {
                     $scope.tagId = tag.data.id;
                     $scope.tagName = tag.data.Name;
-                    $scope.action = 'editTag';
-                    $scope.divTag = true;
+                    $scope.action = 'Update';
+                    $('.bd-example-modal-sm').modal();
                 }, function () {
                     alert('Error in getting MyTags records');
                 });
@@ -174,20 +187,20 @@
                 var tag = {
                     Name: $scope.tagName
                 }
-                if ($scope.action == 'addTag') {
+                if ($scope.action == 'Create') {
                     myService.addTag(tag).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divTag = false;
+                        $('.bd-example-modal-sm').modal('hide');
                     }, function () {
                         alert('Error in getting MyTags records');
                     });
-                } else {
+                } else { // Update
                     tag.id = $scope.tagId;
                     myService.editTag(tag).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divTag = false;
+                        $('.bd-example-modal-sm').modal('hide');
                     }, function () {
                         alert('Error in getting MyTags records');
                     });
@@ -204,7 +217,7 @@
             }
             $scope.cancelTag = function () {
                 clearFields();
-                $scope.divTag = false;
+                $('.bd-example-modal-sm').modal('hide');
             }
             function clearFields() {
                 $scope.tagId = '';
@@ -213,12 +226,12 @@
             }
             $scope.cancelClass = function () {
                 clearFields();
-                $scope.divClass = false;
+                $('#exampleModalCenter').modal('hide');
             }
             $scope.addClass = function (tagId) {
                 clearFields();
-                $scope.action = 'addClass';
-                $scope.divClass = true;
+                $scope.action = 'Create';
+                $('#exampleModalCenter').modal();
                 $scope.btnDisable = false;
                 $scope.tagId = tagId;
                 getPosition();
@@ -231,12 +244,12 @@
                     $scope.latitude = $class.data.Latitude;
                     $scope.longitude = $class.data.Longitude;
                     $scope.stop = $class.data.stop;
-                    $scope.action = 'editClass';
-                    $scope.divClass = true;
+                    $scope.action = 'Update';
+                    $('#exampleModalCenter').modal();
                     $scope.btnStop = true;
                     // show place
                     $.get(`https://locationiq.org/v1/reverse.php?key=c81b170bd5903d&lat=${$scope.latitude}&lon=${$scope.longitude}&format=json`, function (data) {
-                        $('a:visible[id=place]').text(data.display_name.substr(0, 25));
+                        $('a:visible[id=place]').text(data.display_name);
                     });
                 }, function () {
                     alert('Error in getting MyClasses records');
@@ -249,21 +262,21 @@
                     Latitude: $scope.latitude,
                     Longitude: $scope.longitude
                 }
-                if ($scope.action == 'addClass') {
+                if ($scope.action == 'Create') {
                     myService.addClass($class).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divClass = false;
+                        $('#exampleModalCenter').modal('hide');
                     }, function () {
                         alert('Error in getting MyClasses records');
                     });
-                } else {
+                } else { // Update
                     $class.id = $scope.classId;
                     $class.stop = $scope.stop;
                     myService.editClass($class).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divClass = false;
+                        $('#exampleModalCenter').modal('hide');
                     }, function () {
                         alert('Error in getting MyClasses records');
                     });
@@ -285,7 +298,7 @@
                     myService.editClass($class.data).then(function (msg) {
                         getAllClasses();
                         alert(msg.data);
-                        $scope.divClass = false;
+                        $('#exampleModalCenter').modal('hide');
                     }, function () {
                         alert('Error in getting MyClasses records');
                     });
@@ -298,6 +311,9 @@
                     navigator.geolocation.getCurrentPosition(function (position) {
                         $scope.latitude = position.coords.latitude;
                         $scope.longitude = position.coords.longitude;
+                        $.get(`https://locationiq.org/v1/reverse.php?key=c81b170bd5903d&lat=${$scope.latitude}&lon=${$scope.longitude}&format=json`, function (data) {
+                            $('a:visible[id=place]').text(data.display_name);
+                        });
                     });
             }
             $scope.showDate = function (str) {
@@ -305,9 +321,9 @@
             }
             $scope.showCode = function ($class) {
                 if ($class.stop == false) {
-                    var latitude = Math.round(parseFloat($class.Latitude)*100);
-                    var longitude = Math.round(parseFloat($class.Longitude)*100);
-                    return `${$class.id}-${latitude}-${longitude}`;
+                    var latitude = Math.round(parseFloat($class.Latitude)*10);
+                    var longitude = Math.round(parseFloat($class.Longitude)*10);
+                    return `${$class.id}-${latitude+longitude}`;
                 } else return 'Closed';
             }
         });

@@ -107,12 +107,13 @@
                 ctx.fillText("Click 'Take photo' to start", this.width / 2, this.height / 2);
             });
 
-            $('[id=Model]').click(function () {
+            $('[id=Model]').click(async function () {
                 $('button.navbar-toggle').trigger('click');
                 $($(this).parents('ul')[0]).find('li').removeClass('active');
                 $($(this).parents('li')[0]).addClass('active');
                 switch ($(this).attr('data-val')) {
                     case 'MTCNN':
+                        await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
                         OPTIONS = MTCNN;
                         break;
                     case 'SSDMOBILENETV1':
@@ -123,6 +124,7 @@
                         break;
                 }
                 $.blockUI();
+                $('button.navbar-toggle').trigger('click');
                 $('#Upload').trigger('change');
             });
             ROTATE_VAL = localStorage.getItem('ROTATE_VAL');
@@ -200,10 +202,21 @@
                         $.get(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`).done(async function () {
                             const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
                             detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
-                            if (detections != undefined)
+                            if (detections != undefined) {
                                 localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
-                            else throw 'Face not found';
-                            loadFaceID();
+                                loadFaceID();
+                            } else {
+                                alert('Load another model');
+                                await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
+                                detections = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
+                                if (detections != undefined) {
+                                    localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
+                                    loadFaceID();
+                                } else {
+                                    faceMatcher = null;
+                                    alert('Face not found');
+                                }
+                            }
                         }).fail(function () {
                             faceMatcher = null;
                             throw 'You should login';
