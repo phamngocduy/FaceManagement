@@ -1,9 +1,13 @@
 ﻿@model string[]
 
 <div class="container">
-    <h3 class="font-weight-light text-center text-lg-left mt-4 mb-0">Thumbnail Gallery</h3>
+    <h3 class="font-weight-light text-center text-lg-left mt-4 mb-0">
+        <a href="#">http://bit.ly/vluID</a>
+        <span>code: @ViewContext.RouteData.Values["id"]</span>
+        <span>_XXX_XXXX</span>
+    </h3>
     <hr class="mt-2 mb-5">
-    <div class="row text-center text-lg-left">
+    <div id="Thumbnail" class="row text-center text-lg-left">
         @foreach (var file in Model)
         {
             <div class="col-lg-2 col-md-3 col-xs-4">
@@ -41,14 +45,18 @@
 
 @section Scripts {
     <link href="~/Content/toastr.min.css" rel="stylesheet" />
-    <script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
     <script src="~/Scripts/toastr.min.js"></script>
     <script src="~/signalr/hubs"></script>
     <script>
         $(function () {
-            var check = $.connection.checkHub;
+            check = $.connection.checkHub;
             check.client.addNewCheckToPage = function (id, code) {
-                alert(code);
+                code = '187pm1234';
+                var image = $('<div class="col-lg-2 col-md-3 col-xs-4"><a href="#" onclick="showImage(this)" class="d-block mb-4 h-100"><img class="img-fluid img-thumbnail" alt=""></a></div>');
+                image.find('img').attr('src', `@Url.Content("~/App_Data/Checks/")@ViewContext.RouteData.Values["id"]/${code}.jpg`);
+                $('#Thumbnail').prepend($(image));
+                toastr.info(code);
             };
             $.connection.hub.start();
             //check.server.send(xxx);

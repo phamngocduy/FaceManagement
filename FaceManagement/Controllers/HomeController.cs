@@ -37,13 +37,24 @@ namespace FaceManagement.Controllers
                 var path = "~/App_Data/Checks/";
                 Directory.CreateDirectory(Path.Combine(Server.MapPath(path), code));
                 face.SaveAs(Path.Combine(Server.MapPath(path), code, user + ".jpg"));
-                GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
+                GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.User(code).addNewCheckToPage(code, user);
                 return "Check in successfully";
 
             } catch (Exception e)
             {
                 return e.GetBaseException().Message;
             }
+        }
+
+        public string SendAll()
+        {
+            GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage("123", "DUY");
+            return "OK";
+        }
+        public string Send1()
+        {
+            GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.User("1").addNewCheckToPage("123", "DUY");
+            return "OK";
         }
 
         public ViewResult Display(string id)
