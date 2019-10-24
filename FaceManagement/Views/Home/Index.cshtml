@@ -147,7 +147,7 @@
             console.log('Loading models');
             FETCH = self.fetch;
             self.fetch = function (input) {
-                return FETCH(input, { cache: "no-store" });
+                return FETCH(input, { cache: "force-cache" }); // no-store
             }
             function showProgress(val) {
                 $('#Progress').text(val);
@@ -163,8 +163,10 @@
             async function loadLibrary() {
                 if (libraries.length > 0) {
                     showProgress(libraries.length);
-                    var library = libraries.pop();
-                    eval(library).then(loadLibrary);
+                    setTimeout(function () {
+                        var library = libraries.pop();
+                        eval(library).then(loadLibrary);
+                    }, 100);
                     return;
                 }
                 console.log('Finished in ' + (Date.now() - NOW));
@@ -217,7 +219,7 @@
 
                 unblockUI();
             }
-            setTimeout(loadLibrary, 0);
+            setTimeout(loadLibrary, 100);
         }
 
         function loadFaceID() {
