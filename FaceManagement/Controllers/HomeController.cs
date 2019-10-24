@@ -37,7 +37,7 @@ namespace FaceManagement.Controllers
                 var path = "~/App_Data/Checks/";
                 Directory.CreateDirectory(Path.Combine(Server.MapPath(path), code));
                 face.SaveAs(Path.Combine(Server.MapPath(path), code, user + ".jpg"));
-                GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.User(code).addNewCheckToPage(code, user);
+                GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
                 return "Check in successfully";
 
             } catch (Exception e)

@@ -52,7 +52,6 @@
         $(function () {
             check = $.connection.checkHub;
             check.client.addNewCheckToPage = function (id, code) {
-                code = '187pm1234';
                 var image = $('<div class="col-lg-2 col-md-3 col-xs-4"><a href="#" onclick="showImage(this)" class="d-block mb-4 h-100"><img class="img-fluid img-thumbnail" alt=""></a></div>');
                 image.find('img').attr('src', `@Url.Content("~/App_Data/Checks/")@ViewContext.RouteData.Values["id"]/${code}.jpg`);
                 $('#Thumbnail').prepend($(image));

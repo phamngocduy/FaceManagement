@@ -177,11 +177,12 @@
                 OPTIONS = TINYFACEDETECTOR;
                 console.log('Loading FaceID');
                 try {
+                    var pathID = USERID;
                     if (localStorage.getItem(USERID) == null) {
                         if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
                             var path = USERID.match(/[a-z]+/)[0];
                             paths = USERID.split(path);
-                            USERID = paths[0] + '/' + path + '/' + USERID;
+                            pathID = paths[0] + '/' + path + '/' + USERID;
                         }
                         @*
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
@@ -196,8 +197,8 @@
                         }
                         *@
                         var detections = null;
-                        $.get(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`).done(async function () {
-                            const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
+                        $.get(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`).done(async function () {
+                            const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
                             detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
                             if (detections != undefined)
                                 localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
@@ -227,7 +228,7 @@
             if (localStorage.getItem(`${USERID}2`) != null)
                 descriptor.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${USERID}2`)).descriptor)));
             const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, descriptor);
-            faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.5 : 0.45);
+            faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.6 : 0.45);
         }
 
         function unblockUI() {
