@@ -5,15 +5,17 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="c03c9f5af74b4687ad9367102619b8f1" Name="Diagram1" >
-        <EntityTypeShape EntityType="FaceManagementModel.MyClass" Width="1.5" PointX="3" PointY="1" />
-        <EntityTypeShape EntityType="FaceManagementModel.MyTag" Width="1.5" PointX="0.75" PointY="1.375" />
-        <AssociationConnector Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243" />
-        <EntityTypeShape EntityType="FaceManagementModel.AspNetRole" Width="1.5" PointX="0.75" PointY="6.5" />
-        <EntityTypeShape EntityType="FaceManagementModel.AspNetUserClaim" Width="1.5" PointX="5.25" PointY="7.625" />
-        <EntityTypeShape EntityType="FaceManagementModel.AspNetUserLogin" Width="1.5" PointX="5.25" PointY="5" />
-        <EntityTypeShape EntityType="FaceManagementModel.AspNetUser" Width="1.5" PointX="3" PointY="5.375" />
+        <EntityTypeShape EntityType="FaceManagementModel.AspNetRole" Width="1.5" PointX="0.75" PointY="2.5" />
+        <EntityTypeShape EntityType="FaceManagementModel.AspNetUserClaim" Width="1.5" PointX="5.25" PointY="1" />
+        <EntityTypeShape EntityType="FaceManagementModel.AspNetUserLogin" Width="1.5" PointX="5.25" PointY="3.75" />
+        <EntityTypeShape EntityType="FaceManagementModel.AspNetUser" Width="1.5" PointX="3" PointY="1.375" />
+        <EntityTypeShape EntityType="FaceManagementModel.CheckIn" Width="1.5" PointX="5.25" PointY="7" />
+        <EntityTypeShape EntityType="FaceManagementModel.MyClass" Width="1.5" PointX="3" PointY="7" />
+        <EntityTypeShape EntityType="FaceManagementModel.MyTag" Width="1.5" PointX="0.75" PointY="7.5" />
         <AssociationConnector Association="FaceManagementModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="FaceManagementModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" />
+        <AssociationConnector Association="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" />
+        <AssociationConnector Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243" />
         <AssociationConnector Association="FaceManagementModel.AspNetUserRoles" />
       </Diagram>
     </edmx:Diagrams>

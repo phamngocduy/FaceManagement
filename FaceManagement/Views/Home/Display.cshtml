@@ -1,10 +1,13 @@
 ﻿@model string[]
+@{ 
+    var myClass = ViewBag.MyClass as FaceManagement.Models.MyClass;
+}
 
 <div class="container">
     <h3 class="font-weight-light text-center text-lg-left mt-4 mb-0">
-        <a href="#">http://bit.ly/vluID</a>
-        <span>code: @ViewContext.RouteData.Values["id"]</span>
-        <span>_XXX_XXXX</span>
+        <a href="#">http://bit.ly/DDanh</a>
+        <span>code:</span>
+        <span>@(myClass.id)-@Math.Round(myClass.Latitude * 10 + myClass.Longitude * 10)</span>
     </h3>
     <hr class="mt-2 mb-5">
     <div id="Thumbnail" class="row text-center text-lg-left">
@@ -52,6 +55,7 @@
         $(function () {
             check = $.connection.checkHub;
             check.client.addNewCheckToPage = function (id, code) {
+                if (id != '@ViewContext.RouteData.Values["id"]') return;
                 var image = $('<div class="col-lg-2 col-md-3 col-xs-4"><a href="#" onclick="showImage(this)" class="d-block mb-4 h-100"><img class="img-fluid img-thumbnail" alt=""></a></div>');
                 image.find('img').attr('src', `@Url.Content("~/App_Data/Checks/")@ViewContext.RouteData.Values["id"]/${code}.jpg`);
                 $('#Thumbnail').prepend($(image));

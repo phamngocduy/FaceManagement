@@ -56,6 +56,19 @@
           <Property Name="AccessFailedCount" Type="int" Nullable="false" />
           <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
         </EntityType>
+        <EntityType Name="CheckIn">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="date" Type="datetime" Nullable="false" />
+          <Property Name="Class_id" Type="int" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Latitude" Type="float" Nullable="false" />
+          <Property Name="Longitude" Type="float" Nullable="false" />
+          <Property Name="Image" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Accuracy" Type="float" Nullable="false" />
+        </EntityType>
         <EntityType Name="MyClass">
           <Key>
             <PropertyRef Name="id" />
@@ -74,7 +87,20 @@
           </Key>
           <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="User" Type="nvarchar" MaxLength="50" Nullable="false" />
         </EntityType>
+        <Association Name="FK__CheckIn__Class_i__3D5E1FD2">
+          <End Role="MyClass" Type="Self.MyClass" Multiplicity="1" />
+          <End Role="CheckIn" Type="Self.CheckIn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MyClass">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="CheckIn">
+              <PropertyRef Name="Class_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK__MyClass__Tag_id__36B12243">
           <End Role="MyTag" Type="Self.MyTag" Multiplicity="1" />
           <End Role="MyClass" Type="Self.MyClass" Multiplicity="*" />
@@ -149,8 +175,13 @@
           <EntitySet Name="AspNetUserLogins" EntityType="Self.AspNetUserLogins" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CheckIn" EntityType="Self.CheckIn" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MyClass" EntityType="Self.MyClass" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MyTag" EntityType="Self.MyTag" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__CheckIn__Class_i__3D5E1FD2" Association="Self.FK__CheckIn__Class_i__3D5E1FD2">
+            <End Role="MyClass" EntitySet="MyClass" />
+            <End Role="CheckIn" EntitySet="CheckIn" />
+          </AssociationSet>
           <AssociationSet Name="FK__MyClass__Tag_id__36B12243" Association="Self.FK__MyClass__Tag_id__36B12243">
             <End Role="MyTag" EntitySet="MyTag" />
             <End Role="MyClass" EntitySet="MyClass" />
@@ -177,16 +208,13 @@
     <edmx:ConceptualModels>
       <Schema Namespace="FaceManagementModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="FaceIDEntities" annotation:LazyLoadingEnabled="true" >
-          <EntitySet Name="MyClasses" EntityType="FaceManagementModel.MyClass" />
-          <EntitySet Name="MyTags" EntityType="FaceManagementModel.MyTag" />
-          <AssociationSet Name="FK__MyClass__Tag_id__36B12243" Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243">
-            <End Role="MyTag" EntitySet="MyTags" />
-            <End Role="MyClass" EntitySet="MyClasses" />
-          </AssociationSet>
           <EntitySet Name="AspNetRoles" EntityType="FaceManagementModel.AspNetRole" />
           <EntitySet Name="AspNetUserClaims" EntityType="FaceManagementModel.AspNetUserClaim" />
           <EntitySet Name="AspNetUserLogins" EntityType="FaceManagementModel.AspNetUserLogin" />
           <EntitySet Name="AspNetUsers" EntityType="FaceManagementModel.AspNetUser" />
+          <EntitySet Name="CheckIns" EntityType="FaceManagementModel.CheckIn" />
+          <EntitySet Name="MyClasses" EntityType="FaceManagementModel.MyClass" />
+          <EntitySet Name="MyTags" EntityType="FaceManagementModel.MyTag" />
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="FaceManagementModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserClaim" EntitySet="AspNetUserClaims" />
@@ -195,44 +223,19 @@
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserLogin" EntitySet="AspNetUserLogins" />
           </AssociationSet>
+          <AssociationSet Name="FK__CheckIn__Class_i__3D5E1FD2" Association="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2">
+            <End Role="MyClass" EntitySet="MyClasses" />
+            <End Role="CheckIn" EntitySet="CheckIns" />
+          </AssociationSet>
+          <AssociationSet Name="FK__MyClass__Tag_id__36B12243" Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243">
+            <End Role="MyTag" EntitySet="MyTags" />
+            <End Role="MyClass" EntitySet="MyClasses" />
+          </AssociationSet>
           <AssociationSet Name="AspNetUserRoles" Association="FaceManagementModel.AspNetUserRoles">
             <End Role="AspNetRole" EntitySet="AspNetRoles" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
         </EntityContainer>
-        <EntityType Name="MyClass">
-          <Key>
-            <PropertyRef Name="id" />
-          </Key>
-          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="date" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="stop" Type="Boolean" Nullable="false" />
-          <Property Name="Tag_id" Type="Int32" Nullable="false" />
-          <Property Name="Title" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Latitude" Type="Double" Nullable="false" />
-          <Property Name="Longitude" Type="Double" Nullable="false" />
-          <NavigationProperty Name="MyTag" Relationship="FaceManagementModel.FK__MyClass__Tag_id__36B12243" FromRole="MyClass" ToRole="MyTag" />
-        </EntityType>
-        <EntityType Name="MyTag">
-          <Key>
-            <PropertyRef Name="id" />
-          </Key>
-          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="MyClasses" Relationship="FaceManagementModel.FK__MyClass__Tag_id__36B12243" FromRole="MyTag" ToRole="MyClass" />
-        </EntityType>
-        <Association Name="FK__MyClass__Tag_id__36B12243">
-          <End Type="FaceManagementModel.MyTag" Role="MyTag" Multiplicity="1" />
-          <End Type="FaceManagementModel.MyClass" Role="MyClass" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="MyTag">
-              <PropertyRef Name="id" />
-            </Principal>
-            <Dependent Role="MyClass">
-              <PropertyRef Name="Tag_id" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="AspNetRole">
           <Key>
             <PropertyRef Name="Id" />
@@ -282,6 +285,43 @@
           <NavigationProperty Name="AspNetUserLogins" Relationship="FaceManagementModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUser" ToRole="AspNetUserLogin" />
           <NavigationProperty Name="AspNetRoles" Relationship="FaceManagementModel.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
         </EntityType>
+        <EntityType Name="CheckIn">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="date" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Class_id" Type="Int32" Nullable="false" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Latitude" Type="Double" Nullable="false" />
+          <Property Name="Longitude" Type="Double" Nullable="false" />
+          <Property Name="Image" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Accuracy" Type="Double" Nullable="false" />
+          <NavigationProperty Name="MyClass" Relationship="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" FromRole="CheckIn" ToRole="MyClass" />
+        </EntityType>
+        <EntityType Name="MyClass">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="date" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="stop" Type="Boolean" Nullable="false" />
+          <Property Name="Tag_id" Type="Int32" Nullable="false" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Latitude" Type="Double" Nullable="false" />
+          <Property Name="Longitude" Type="Double" Nullable="false" />
+          <NavigationProperty Name="CheckIns" Relationship="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" FromRole="MyClass" ToRole="CheckIn" />
+          <NavigationProperty Name="MyTag" Relationship="FaceManagementModel.FK__MyClass__Tag_id__36B12243" FromRole="MyClass" ToRole="MyTag" />
+        </EntityType>
+        <EntityType Name="MyTag">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="User" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="MyClasses" Relationship="FaceManagementModel.FK__MyClass__Tag_id__36B12243" FromRole="MyTag" ToRole="MyClass" />
+        </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="FaceManagementModel.AspNetUser" Role="AspNetUser" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -310,37 +350,40 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK__CheckIn__Class_i__3D5E1FD2">
+          <End Type="FaceManagementModel.MyClass" Role="MyClass" Multiplicity="1" />
+          <End Type="FaceManagementModel.CheckIn" Role="CheckIn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MyClass">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="CheckIn">
+              <PropertyRef Name="Class_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__MyClass__Tag_id__36B12243">
+          <End Type="FaceManagementModel.MyTag" Role="MyTag" Multiplicity="1" />
+          <End Type="FaceManagementModel.MyClass" Role="MyClass" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MyTag">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="MyClass">
+              <PropertyRef Name="Tag_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="AspNetUserRoles">
           <End Type="FaceManagementModel.AspNetRole" Role="AspNetRole" Multiplicity="*" />
           <End Type="FaceManagementModel.AspNetUser" Role="AspNetUser" Multiplicity="*" />
         </Association>
-      </Schema>
+        </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="FaceManagementModelStoreContainer" CdmEntityContainer="FaceIDEntities" >
-          <EntitySetMapping Name="MyClasses">
-            <EntityTypeMapping TypeName="FaceManagementModel.MyClass">
-              <MappingFragment StoreEntitySet="MyClass">
-                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
-                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="Tag_id" ColumnName="Tag_id" />
-                <ScalarProperty Name="stop" ColumnName="stop" />
-                <ScalarProperty Name="date" ColumnName="date" />
-                <ScalarProperty Name="id" ColumnName="id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="MyTags">
-            <EntityTypeMapping TypeName="FaceManagementModel.MyTag">
-              <MappingFragment StoreEntitySet="MyTag">
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="id" ColumnName="id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AspNetRoles">
             <EntityTypeMapping TypeName="FaceManagementModel.AspNetRole">
               <MappingFragment StoreEntitySet="AspNetRoles">
@@ -383,6 +426,42 @@
                 <ScalarProperty Name="EmailConfirmed" ColumnName="EmailConfirmed" />
                 <ScalarProperty Name="Email" ColumnName="Email" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CheckIns">
+            <EntityTypeMapping TypeName="FaceManagementModel.CheckIn">
+              <MappingFragment StoreEntitySet="CheckIn">
+                <ScalarProperty Name="Accuracy" ColumnName="Accuracy" />
+                <ScalarProperty Name="Image" ColumnName="Image" />
+                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
+                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="Class_id" ColumnName="Class_id" />
+                <ScalarProperty Name="date" ColumnName="date" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MyClasses">
+            <EntityTypeMapping TypeName="FaceManagementModel.MyClass">
+              <MappingFragment StoreEntitySet="MyClass">
+                <ScalarProperty Name="Longitude" ColumnName="Longitude" />
+                <ScalarProperty Name="Latitude" ColumnName="Latitude" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Tag_id" ColumnName="Tag_id" />
+                <ScalarProperty Name="stop" ColumnName="stop" />
+                <ScalarProperty Name="date" ColumnName="date" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MyTags">
+            <EntityTypeMapping TypeName="FaceManagementModel.MyTag">
+              <MappingFragment StoreEntitySet="MyTag">
+                <ScalarProperty Name="User" ColumnName="User" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

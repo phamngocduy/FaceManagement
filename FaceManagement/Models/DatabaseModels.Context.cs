@@ -25,11 +25,12 @@ namespace FaceManagement.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<MyClass> MyClasses { get; set; }
-        public virtual DbSet<MyTag> MyTags { get; set; }
         public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
         public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
         public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+        public virtual DbSet<CheckIn> CheckIns { get; set; }
+        public virtual DbSet<MyClass> MyClasses { get; set; }
+        public virtual DbSet<MyTag> MyTags { get; set; }
     }
 }

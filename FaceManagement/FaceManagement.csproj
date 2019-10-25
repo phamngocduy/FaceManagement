@@ -57,6 +57,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -209,6 +210,9 @@
     <Compile Include="Models\AspNetUserLogin.cs">
       <DependentUpon>DatabaseModels.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\CheckIn.cs">
+      <DependentUpon>DatabaseModels.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\DatabaseModels.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -286,6 +290,7 @@
     <Content Include="Scripts\angular.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\detectmobilebrowser.js" />
     <Content Include="Scripts\face-api.js" />
     <Content Include="Scripts\face-api.min.js" />
     <Content Include="Scripts\jquery.blockUI.js" />

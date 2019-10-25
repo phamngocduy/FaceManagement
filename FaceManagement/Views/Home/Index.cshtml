@@ -314,16 +314,25 @@
                             if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
                                 localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                         }
-                        if (found == true) {
-                            var check = $('#Check').attr('time', 30).show();
-                            var interval = setInterval(function () {
-                                var time = check.attr('time') - 1;
-                                check.attr('time', time).text(`Check in (${time}s)`);
-                                if (time <= 0) {
-                                    clearInterval(interval);
-                                    check.fadeToggle("slow", "linear");
-                                }
-                            }, 1000);
+                        if (found == true && typeof ISMOBILE != "undefined" && ISMOBILE) {
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(function (position) {
+                                    DISTANCE = distance;
+                                    LATITUDE = position.coords.latitude;
+                                    LONGITUDE = position.coords.longitude;
+                                    var check = $('#Check').attr('time', 30).show();
+                                    var interval = setInterval(function () {
+                                        var time = check.attr('time') - 1;
+                                        check.attr('time', time).text(`Check in (${time}s)`);
+                                        if (time <= 0) {
+                                            clearInterval(interval);
+                                            check.fadeToggle("slow", "linear");
+                                        }
+                                    }, 1000);
+                                });
+                            } else {
+                                alert('Geolocation is not supported by this browser');
+                            }
                         }
                     }
                 });
@@ -339,6 +348,9 @@
                 form.append('code', code);
                 form.append('face', image);
                 form.append('user', USERID);
+                form.append('latitude', LATITUDE);
+                form.append('longitude', LONGITUDE);
+                form.append('accuracy', DISTANCE);
                 $.ajax({
                     type: 'POST',
                     url: '@Url.Action("Upload", "Home")',
@@ -346,13 +358,20 @@
                     processData: false,
                     contentType: false
                 }).done(function (data) {
-                    alert(data);
-                    location.replace(`@Url.Content("~/App_Data/Checks/")${code.split('-')[0]}/${USERID}.jpg`);
+                    if (data.startsWith('KO:')) {
+                        data = data.split(':')[1];
+                        alert(data);
+                        $.unblockUI();
+                    } else {
+                        alert(data);
+                        location.replace(`@Url.Content("~/App_Data/Checks/")${code.split('-')[0]}/${USERID}.jpg`);
+                    }
                 });
             }, 'image/jpeg');
         }
     </script>
 
+    <script src="~/Scripts/detectmobilebrowser.js"></script>
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 }

@@ -12,19 +12,17 @@ namespace FaceManagement.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class MyTag
+    public partial class CheckIn
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public MyTag()
-        {
-            this.MyClasses = new HashSet<MyClass>();
-        }
-    
         public int id { get; set; }
-        public string Name { get; set; }
-        public string User { get; set; }
+        public System.DateTime date { get; set; }
+        public int Class_id { get; set; }
+        public string Code { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Image { get; set; }
+        public double Accuracy { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<MyClass> MyClasses { get; set; }
+        public virtual MyClass MyClass { get; set; }
     }
 }
