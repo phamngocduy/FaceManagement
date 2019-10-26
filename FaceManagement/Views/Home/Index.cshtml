@@ -5,7 +5,7 @@
 <script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
-<button id="Check" style="position:fixed;left:1em;bottom:1em;display:none">Check in (60s)</button>
+<button id="Check" style="position:fixed;left:1em;bottom:1em;display:none" class="btn-success">Check in (60s)</button>
 
 @if (!Request.IsAuthenticated)
 {
@@ -322,11 +322,11 @@
                                     LONGITUDE = position.coords.longitude;
                                     var check = $('#Check').attr('time', 30).show();
                                     var interval = setInterval(function () {
-                                        var time = check.attr('time') - 1;
-                                        check.attr('time', time).text(`Check in (${time}s)`);
+                                        var time = check.attr('time') - 0.5;
+                                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
                                         if (time <= 0) {
                                             clearInterval(interval);
-                                            check.fadeToggle("slow", "linear");
+                                            check.show().fadeToggle("slow", "linear");
                                         }
                                     }, 1000);
                                 });
