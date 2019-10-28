@@ -17,6 +17,7 @@
         <AssociationConnector Association="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" />
         <AssociationConnector Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243" />
         <AssociationConnector Association="FaceManagementModel.AspNetUserRoles" />
+        <EntityTypeShape EntityType="FaceManagementModel.ErrorLog" Width="1.5" PointX="7.375" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -23,6 +23,7 @@ namespace FaceManagement.Controllers
             return View();
         }
 
+        [System.Web.Mvc.Authorize]
         public ActionResult Contact()
         {
             return View();

@@ -178,6 +178,7 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\CheckHub.cs" />
+    <Compile Include="Controllers\ErrorLogsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MyClassesController.cs" />
@@ -227,6 +228,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>DatabaseModels.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ErrorLog.cs">
+      <DependentUpon>DatabaseModels.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
@@ -386,6 +390,11 @@
     <Content Include="Views\MyTags\Index.cshtml" />
     <Content Include="Scripts\version.json" />
     <Content Include="Views\Home\Display.cshtml" />
+    <Content Include="Views\ErrorLogs\Create.cshtml" />
+    <Content Include="Views\ErrorLogs\Delete.cshtml" />
+    <Content Include="Views\ErrorLogs\Details.cshtml" />
+    <Content Include="Views\ErrorLogs\Edit.cshtml" />
+    <Content Include="Views\ErrorLogs\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

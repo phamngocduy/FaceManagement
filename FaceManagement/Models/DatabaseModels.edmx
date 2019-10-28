@@ -69,6 +69,15 @@
           <Property Name="Image" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Accuracy" Type="float" Nullable="false" />
         </EntityType>
+        <EntityType Name="ErrorLog">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Error" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Trace" Type="nvarchar(max)" />
+        </EntityType>
         <EntityType Name="MyClass">
           <Key>
             <PropertyRef Name="id" />
@@ -176,6 +185,7 @@
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CheckIn" EntityType="Self.CheckIn" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ErrorLog" EntityType="Self.ErrorLog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MyClass" EntityType="Self.MyClass" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MyTag" EntityType="Self.MyTag" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK__CheckIn__Class_i__3D5E1FD2" Association="Self.FK__CheckIn__Class_i__3D5E1FD2">
@@ -235,6 +245,7 @@
             <End Role="AspNetRole" EntitySet="AspNetRoles" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
+          <EntitySet Name="ErrorLogs" EntityType="FaceManagementModel.ErrorLog" />
         </EntityContainer>
         <EntityType Name="AspNetRole">
           <Key>
@@ -378,6 +389,15 @@
           <End Type="FaceManagementModel.AspNetRole" Role="AspNetRole" Multiplicity="*" />
           <End Type="FaceManagementModel.AspNetUser" Role="AspNetUser" Multiplicity="*" />
         </Association>
+        <EntityType Name="ErrorLog">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Error" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Trace" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -473,6 +493,16 @@
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="ErrorLogs">
+            <EntityTypeMapping TypeName="FaceManagementModel.ErrorLog">
+              <MappingFragment StoreEntitySet="ErrorLog">
+                <ScalarProperty Name="Trace" ColumnName="Trace" />
+                <ScalarProperty Name="Error" ColumnName="Error" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

@@ -207,11 +207,13 @@
                                 console.error(err);
                                 alert('Not enough memory');
                             }
+                            unblockUI();
                             if (detections != undefined) {
                                 localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
                                 loadFaceID();
                             } else {
                                 alert('Load another model');
+                                $.blockUI(); NOW = Date.now();
                                 await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
                                 detections = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
                                 if (detections != undefined) {
@@ -219,24 +221,25 @@
                                     loadFaceID();
                                 } else {
                                     faceMatcher = null;
-                                    alert('Face not found');
+                                    logError('Face Not Found');
                                 }
+                                unblockUI();
                             }
                         }).fail(function () {
                             faceMatcher = null;
-                            throw 'You should login';
+                            if (@(Request.IsAuthenticated ? "true" : "false"))
+                                logError('File Not Found');
+                            else throw new Error('You should login');
                         });
-                    } else loadFaceID();
-                } catch (err) {
-                    console.error(err);
-                    @if (Request.IsAuthenticated)
-                    {
-                        @MvcHtmlString.Create("alert('Face Not Found');")
+                    } else {
+                        loadFaceID();
+                        unblockUI();
                     }
+                } catch (err) {
                     faceMatcher = null;
+                    console.error(err);
+                    logError(err.message || err);
                 }
-
-                unblockUI();
             }
             setTimeout(loadLibrary, 100);
         }
@@ -373,6 +376,25 @@
                     }
                 });
             }, 'image/jpeg');
+        }
+
+        function logError(error) {
+            try {
+                throw new Error('');
+            } catch (err) {
+                var form = new FormData();
+                form.append('Code', USERID);
+                form.append('Error', error);
+                form.append('Trace', err.stack || '');
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Create", "ErrorLogs")',
+                    data: form,
+                    processData: false,
+                    contentType: false
+                });
+                alert(error);
+            }
         }
     </script>
 

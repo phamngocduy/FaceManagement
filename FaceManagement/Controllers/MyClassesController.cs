@@ -7,6 +7,7 @@ using FaceManagement.Models;
 
 namespace FaceManagement.Controllers
 {
+    [Authorize]
     public class MyClassesController : Controller
     {
         FaceIDEntities db = new FaceIDEntities();

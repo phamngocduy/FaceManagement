@@ -32,5 +32,6 @@ namespace FaceManagement.Models
         public virtual DbSet<CheckIn> CheckIns { get; set; }
         public virtual DbSet<MyClass> MyClasses { get; set; }
         public virtual DbSet<MyTag> MyTags { get; set; }
+        public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
     }
 }

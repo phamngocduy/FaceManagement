@@ -7,6 +7,7 @@ using FaceManagement.Models;
 
 namespace FaceManagement.Controllers
 {
+    [Authorize]
     public class MyTagsController : Controller
     {
         public ActionResult Index()
@@ -18,7 +19,7 @@ namespace FaceManagement.Controllers
 
         public JsonResult getAll()
         {
-            var tags = db.MyTags.ToList();
+            var tags = db.MyTags.Where(t => t.User == User.Identity.Name).ToList();
             tags.ForEach(t => t.MyClasses.Clear());
             return Json(tags, JsonRequestBehavior.AllowGet);
         }
