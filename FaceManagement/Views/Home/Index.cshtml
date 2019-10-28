@@ -201,7 +201,12 @@
                         var detections = null;
                         $.get(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`).done(async function () {
                             const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
-                            detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                            try {
+                                detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                            } catch (err) {
+                                console.error(err);
+                                alert('Not enough memory');
+                            }
                             if (detections != undefined) {
                                 localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
                                 loadFaceID();
