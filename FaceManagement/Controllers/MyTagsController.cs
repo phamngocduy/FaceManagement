@@ -37,6 +37,7 @@ namespace FaceManagement.Controllers
             {
                 try
                 {
+                    tag.User = User.Identity.Name;
                     db.MyTags.Add(tag);
                     db.SaveChanges();
                     return "Tag Created";

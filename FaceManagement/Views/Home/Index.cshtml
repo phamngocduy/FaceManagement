@@ -229,11 +229,11 @@
                             faceMatcher = null;
                             if (@(Request.IsAuthenticated ? "true" : "false"))
                                 logError('File Not Found');
-                            else throw new Error('You should login');
+                            else console.error('You should login');//throw new Error('You should login');
+                            unblockUI();
                         });
                     } else {
                         loadFaceID();
-                        unblockUI();
                     }
                 } catch (err) {
                     faceMatcher = null;
@@ -322,7 +322,7 @@
                             if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
                                 localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                         }
-                        if (found == true && typeof ISMOBILE != "undefined" && ISMOBILE) {
+                        if (found == true /*&& typeof ISMOBILE != "undefined" && ISMOBILE*/) {
                             if (navigator.geolocation) {
                                 navigator.geolocation.getCurrentPosition(function (position) {
                                     DISTANCE = distance;
