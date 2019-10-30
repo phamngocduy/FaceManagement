@@ -17,85 +17,9 @@
 
 @section Scripts {
     <script>
+        var MAX_WIDTH, MAX_HEIGHT, OPTIONS, TINYFACEDETECTOR, MTCNN, SSDMOBILENETV1, ROTATE_VAL, NOW;
+
         $(function () {
-            $('#Upload').change(function () {
-                if (this.files && this.files[0]) {
-                    var reader = new FileReader();
-
-                    reader.onload = function (e) {
-                        var canvas = document.getElementById('Canvas');
-                        var ctx = canvas.getContext('2d');
-                        var image = new Image();
-
-                        image.onload = function () {
-                            var img = document.createElement("img");
-                            img.src = e.target.result;
-
-                            var ctx = canvas.getContext("2d");
-                            ctx.drawImage(img, 0, 0);
-
-                            var width = img.width;
-                            var height = img.height;
-                            var maxWidth = MAX_WIDTH;
-                            var maxHeight = MAX_HEIGHT;
-
-                            if (maxWidth * height / width <= maxHeight) {
-                                height = maxWidth * height / width;
-                                width = maxWidth;
-                            } else {
-                                width = maxHeight * width / height;
-                                height = maxHeight;
-                            }
-                            canvas.width = width;
-                            canvas.height = height;
-
-                            var ctx = canvas.getContext("2d");
-                            switch (ROTATE_VAL) {
-                                case "-90":
-                                    canvas.width = height;
-                                    canvas.height = width;
-                                    ctx.transform(1, 0, 0, 1, 0, width);
-                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
-                                    ctx.drawImage(img, 0, 0, width, height);
-                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
-                                    ctx.transform(1, 0, 0, 1, 0, -width);
-                                    resizeImg(canvas);
-                                    break;
-                                case "90":
-                                    canvas.width = height;
-                                    canvas.height = width;
-                                    ctx.transform(1, 0, 0, 1, height, 0);
-                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
-                                    ctx.drawImage(img, 0, 0, width, height);
-                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
-                                    ctx.transform(1, 0, 0, 1, -height, 0);
-                                    resizeImg(canvas);
-                                    break;
-                                case "180":
-                                    ctx.transform(1, 0, 0, 1, width, height);
-                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
-                                    ctx.drawImage(img, 0, 0, width, height);
-                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
-                                    ctx.transform(1, 0, 0, 1, -width, -height);
-                                    break;
-                                default:
-                                    ctx.drawImage(img, 0, 0, width, height);
-                            }
-                            $.blockUI();
-                            $(canvas).width('');
-                            $(canvas).height('');
-                            setTimeout(function () {
-                                FaceDetection(canvas);
-                            }, 100);
-                        }
-
-                        image.src = e.target.result;
-                    };
-
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-
             $('#Canvas').height($('#Canvas').height() - $('#Canvas').offset().top);
             MAX_WIDTH = $('#Canvas').width(); MAX_HEIGHT = $('#Canvas').height();
             $('#Canvas').width(MAX_WIDTH).height(MAX_HEIGHT).css('border', 'ridge');
@@ -139,126 +63,88 @@
                 $('#Upload').trigger('change');
                 localStorage.setItem('ROTATE_VAL', ROTATE_VAL);
             }).filter(`[data-val=${ROTATE_VAL}]`).parent().addClass('active');
-        })
+        });
     </script>
+
     <script>
-        $.blockUI({ message: '<h1><img src="@Url.Content("~/Content/busy.gif")" /> Loading ...<span id="Progress">5</span></h1>' });
-        window.onload = function () {
-            USERID = '@UserId';
-            NOW = Date.now();
-            console.log('Loading models');
-            FETCH = self.fetch;
-            self.fetch = function (input) {
-                return FETCH(input, { cache: "force-cache" }); // no-store
-            }
-            function showProgress(val) {
-                $('#Progress').text(val);
-            }
-            var libraries = [
-                //faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
-                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
-                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'),
-            ];
-            async function loadLibrary() {
-                if (libraries.length > 0) {
-                    showProgress(libraries.length);
-                    setTimeout(function () {
-                        var library = libraries.pop();
-                        eval(library).then(loadLibrary);
-                    }, 100);
-                    return;
-                }
-                console.log('Finished in ' + (Date.now() - NOW));
-                NOW = Date.now(); showProgress(0);
-                MTCNN = new faceapi.MtcnnOptions();
-                SSDMOBILENETV1 = new faceapi.SsdMobilenetv1Options();
-                TINYFACEDETECTOR = new faceapi.TinyFaceDetectorOptions();
-                OPTIONS = TINYFACEDETECTOR;
-                console.log('Loading FaceID');
-                try {
-                    var pathID = USERID;
-                    if (localStorage.getItem(USERID) == null) {
-                        if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(USERID)) {
-                            var path = USERID.match(/[a-z]+/)[0];
-                            paths = USERID.split(path);
-                            pathID = paths[0] + '/' + path + '/' + USERID;
-                        }
-                        @*
-                        const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${USERID}.jpg`);
-                        var detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
-                        if (detections == undefined) {
-                            alert('Using MTCNN models');
-                            detections == await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
-                        }
-                        if (detections == undefined) {
-                            alert('Using SsdMobilenetv1 models');
-                            detections == await faceapi.detectSingleFace(img, SSDMOBILENETV1).withFaceLandmarks().withFaceDescriptor();
-                        }
-                        *@
-                        var detections = null;
-                        $.get(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`).done(async function () {
-                            const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
-                            try {
-                                detections = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
-                            } catch (err) {
-                                console.error(err);
-                                alert('Not enough memory');
-                            }
-                            unblockUI();
-                            if (detections != undefined) {
-                                localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
-                                loadFaceID();
+        $(function () {
+            $('#Upload').change(function () {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var canvas = document.getElementById('Canvas');
+                        var ctx = canvas.getContext('2d');
+                        var image = new Image();
+
+                        image.onload = function () {
+                            var img = document.createElement("img");
+                            img.src = e.target.result;
+
+                            var ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0);
+
+                            var width = img.width;
+                            var height = img.height;
+                            var maxWidth = MAX_WIDTH;
+                            var maxHeight = MAX_HEIGHT;
+
+                            if (maxWidth * height / width <= maxHeight) {
+                                height = maxWidth * height / width;
+                                width = maxWidth;
                             } else {
-                                alert('Load another model');
-                                $.blockUI(); NOW = Date.now();
-                                await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
-                                detections = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
-                                if (detections != undefined) {
-                                    localStorage.setItem(USERID, JSON.stringify(Array.prototype.slice.call(detections.descriptor)));
-                                    loadFaceID();
-                                } else {
-                                    faceMatcher = null;
-                                    logError('Face Not Found');
-                                }
-                                unblockUI();
+                                width = maxHeight * width / height;
+                                height = maxHeight;
                             }
-                        }).fail(function () {
-                            faceMatcher = null;
-                            if (@(Request.IsAuthenticated ? "true" : "false"))
-                                logError('File Not Found');
-                            else console.error('You should login');//throw new Error('You should login');
-                            unblockUI();
-                        });
-                    } else {
-                        loadFaceID();
-                    }
-                } catch (err) {
-                    faceMatcher = null;
-                    console.error(err);
-                    logError(err.message || err);
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            var ctx = canvas.getContext("2d");
+                            switch (ROTATE_VAL) {
+                                case "-90":
+                                    canvas.width = height;
+                                    canvas.height = width;
+                                    ctx.transform(1, 0, 0, 1, 0, width);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, 0, -width);
+                                    resizeImage(canvas);
+                                    break;
+                                case "90":
+                                    canvas.width = height;
+                                    canvas.height = width;
+                                    ctx.transform(1, 0, 0, 1, height, 0);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(-ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, -height, 0);
+                                    resizeImage(canvas);
+                                    break;
+                                case "180":
+                                    ctx.transform(1, 0, 0, 1, width, height);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    ctx.rotate(ROTATE_VAL * Math.PI / 180);
+                                    ctx.transform(1, 0, 0, 1, -width, -height);
+                                    break;
+                                default:
+                                    ctx.drawImage(img, 0, 0, width, height);
+                            }
+                            $.blockUI();
+                            $(canvas).width('');
+                            $(canvas).height('');
+                            setTimeout(function () {
+                                detectFaces(canvas).then(logProcess);
+                            }, 100);
+                        }
+                        image.src = e.target.result;
+                    };
+                    reader.readAsDataURL(this.files[0]);
                 }
-            }
-            setTimeout(loadLibrary, 100);
-        }
+            });
+        });
 
-        function loadFaceID() {
-            const descriptor = [new Float32Array(JSON.parse(localStorage.getItem(USERID)))];
-            if (localStorage.getItem(`${USERID}2`) != null)
-                descriptor.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${USERID}2`)).descriptor)));
-            const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(USERID, descriptor);
-            faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptor.length == 1 ? 0.6 : 0.45);
-        }
-
-        function unblockUI() {
-            $.unblockUI();
-            console.log('Finished in ' + (Date.now() - NOW));
-            NOW = Date.now();
-        }
-
-        function resizeImg(canvas) {
+        function resizeImage(canvas) {
             var img = document.createElement("img");
             img.src = canvas.toDataURL();
 
@@ -288,64 +174,183 @@
             }
         }
 
-        async function FaceDetection(canvas) {
-            NOW = Date.now();
-            console.log('Processing image');
-            var image = new Image(); image.src = canvas.toDataURL();
-            const displaySize = { width: canvas.width, height: canvas.height }
-            //faceapi.matchDimensions(canvas, displaySize);
-            const detections = await faceapi.detectAllFaces(image, OPTIONS)
-                .withFaceLandmarks().withFaceExpressions().withFaceDescriptors();
-            const resizedDetections = faceapi.resizeResults(detections, displaySize);
-            //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-            faceapi.draw.drawDetections(canvas, resizedDetections);
-            //faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-            faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-            if (faceMatcher != null) {
-                const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
-                var distance = 1;
-                var descriptor = null;
-                var found = false;
-                results.forEach((result, i) => {
-                    const box = resizedDetections[i].detection.box;
-                    const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
-                    drawBox.draw(canvas);
-                    if (result.label == USERID) {
-                        if (result.distance < distance) {
-                            distance = result.distance;
-                            descriptor = detections[i].descriptor;
+        function logProcess(text) {
+            if (text != undefined) {
+                NOW = Date.now();
+                console.log(text);
+            } else {
+                $.unblockUI();
+                console.log('Finished in ' + (Date.now() - NOW));
+            }
+        }
+
+        function detectFaces(canvas) {
+            logProcess('Processing image');
+            return new Promise(async function (resolve, reject) {
+                var image = new Image(); image.src = canvas.toDataURL();
+                const displaySize = { width: canvas.width, height: canvas.height };
+                //faceapi.matchDimensions(canvas, displaySize);
+                IMG = image;
+                const detections = await faceapi.detectAllFaces(image, OPTIONS)
+                    .withFaceLandmarks().withFaceDescriptors().withFaceExpressions().withAgeAndGender();
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                faceapi.draw.drawDetections(canvas, resizedDetections);
+                //faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+                resizedDetections.forEach(result => {
+                    const { age, gender, genderProbability } = result
+                    new faceapi.draw.DrawTextField(
+                        [
+                            `${faceapi.round(age, 0)} years`,
+                            `${gender} (${faceapi.round(genderProbability)})`
+                        ],
+                        result.detection.box.topLeft
+                    ).draw(canvas)
+                });
+                
+                if (FACEMATCHER != null) {
+                    const results = resizedDetections.map(d => FACEMATCHER.findBestMatch(d.descriptor));
+                    var distance = 1;
+                    var descriptor = null;
+                    var found = false;
+                    results.forEach((result, i) => {
+                        const box = resizedDetections[i].detection.box;
+                        const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
+                        drawBox.draw(canvas);
+                        if (result.label == USERID) {
+                            if (result.distance < distance) {
+                                distance = result.distance;
+                                descriptor = detections[i].descriptor;
+                            }
+                            found = true;
                         }
-                        found = true;
-                    }
-                    if (i == results.length - 1) {
-                        if (distance < 1) {
-                            if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
-                                localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
-                        }
-                        if (found == true /*&& typeof ISMOBILE != "undefined" && ISMOBILE*/) {
-                            if (navigator.geolocation) {
-                                navigator.geolocation.getCurrentPosition(function (position) {
-                                    DISTANCE = distance;
-                                    LATITUDE = position.coords.latitude;
-                                    LONGITUDE = position.coords.longitude;
-                                    var check = $('#Check').attr('time', 30).show();
-                                    var interval = setInterval(function () {
-                                        var time = check.attr('time') - 0.5;
-                                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
-                                        if (time <= 0) {
-                                            clearInterval(interval);
-                                            check.show().fadeToggle("slow", "linear");
-                                        }
-                                    }, 1000);
-                                });
-                            } else {
-                                alert('Geolocation is not supported by this browser');
+                        if (i == results.length - 1) {
+                            if (distance < 1) {
+                                if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
+                                    localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
+                            }
+                            if (found == true /*&& typeof ISMOBILE != "undefined" && ISMOBILE*/) {
+                                if (navigator.geolocation) {
+                                    navigator.geolocation.getCurrentPosition(function (position) {
+                                        DISTANCE = distance;
+                                        LATITUDE = position.coords.latitude;
+                                        LONGITUDE = position.coords.longitude;
+                                        var check = $('#Check').attr('time', 30).show();
+                                        var interval = setInterval(function () {
+                                            var time = check.attr('time') - 0.5;
+                                            check.attr('time', time).text(`Check in (${time}s)`).toggle();
+                                            if (time <= 0) {
+                                                clearInterval(interval);
+                                                check.show().fadeToggle("slow", "linear");
+                                            }
+                                        }, 1000);
+                                    });
+                                } else {
+                                    alert('Geolocation is not supported by this browser');
+                                }
                             }
                         }
-                    }
+                    });
+                }
+                resolve();
+            });
+        }
+    </script>
+
+    <script>
+        var USERID = '@UserId';
+        var FACEMATCHER = null;
+        var FETCH = self.fetch;
+
+        self.fetch = function (input) {
+            return FETCH(input, { cache: "force-cache" }); // no-store
+        }
+
+        function showProgress(val) {
+            $('#Progress').text(val);
+        }
+    </script>
+
+    <script>
+        $.blockUI({ message: '<h1><img src="@Url.Content("~/Content/busy.gif")" /> Loading ...<span id="Progress">5</span></h1>' });
+        window.onload = function () {
+            logProcess('Loading models');
+            var libraries = [
+                //faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")'),
+                //faceapi.nets.ssdMobilenetv1.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.tinyFaceDetector.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.faceExpressionNet.loadFromUri('@Url.Content("~/Static")'),
+                faceapi.nets.ageGenderNet.loadFromUri('@Url.Content("~/Static")')
+            ];
+
+            async function loadLibrary() {
+                if (libraries.length > 0) {
+                    showProgress(libraries.length);
+                    setTimeout(function () {
+                        var library = libraries.pop();
+                        eval(library).then(loadLibrary);
+                    }, 100);
+                    return;
+                }
+
+                MTCNN = new faceapi.MtcnnOptions();
+                SSDMOBILENETV1 = new faceapi.SsdMobilenetv1Options();
+                TINYFACEDETECTOR = new faceapi.TinyFaceDetectorOptions();
+                OPTIONS = TINYFACEDETECTOR;
+
+                if (USERID.length > 0)
+                loadFaceID(USERID, TINYFACEDETECTOR).then(function (detection) {
+                    if (detection) readFaceID(USERID);
                 });
             }
-            unblockUI();
+            setTimeout(loadLibrary, 100);
+        }
+
+        function loadFaceID(userID) {
+            logProcess('Loading FaceID');
+            return new Promise(async function (resolve) {
+                var pathID = userID;
+                if (localStorage.getItem(userID) == null) {
+                    if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(userID)) {
+                        var path = userID.match(/[a-z]+/)[0];
+                        paths = userID.split(path);
+                        pathID = paths[0] + '/' + path + '/' + userID;
+                    }
+                    try {
+                        const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
+                        try {
+                            var detection = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                            if (detection == undefined) {
+                                alert('Load another model. Please wait about 1 minute...');
+                                await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
+                                detection = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
+                            }
+                            if (detection != undefined)
+                                localStorage.setItem(userID, JSON.stringify(Array.prototype.slice.call(detection.descriptor)));
+                            else logError('Face Not Found');
+                            resolve(detection != undefined);
+                        } catch (err) {
+                            console.error(err);
+                            alert('Not Enough Memory');
+                        }
+                    } catch (err) {
+                        logError('File Not Found');
+                    }
+                } else resolve(true);
+                logProcess();
+            });
+        }
+
+        function readFaceID(userID) {
+            const descriptors = [new Float32Array(JSON.parse(localStorage.getItem(userID)))];
+            if (localStorage.getItem(`${userID}2`) != null)
+                descriptors.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${userID}2`)).descriptor)));
+            const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(userID, descriptors);
+            FACEMATCHER = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45);
         }
 
         document.getElementById('Check').onclick = function () {

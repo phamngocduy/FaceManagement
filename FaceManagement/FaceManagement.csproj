@@ -395,6 +395,8 @@
     <Content Include="Views\ErrorLogs\Details.cshtml" />
     <Content Include="Views\ErrorLogs\Edit.cshtml" />
     <Content Include="Views\ErrorLogs\Index.cshtml" />
+    <Content Include="Static\age_gender_model-shard1" />
+    <Content Include="Static\age_gender_model-weights_manifest.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
