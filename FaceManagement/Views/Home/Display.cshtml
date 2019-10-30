@@ -17,7 +17,7 @@
         {
             <div class="col-lg-2 col-md-3 col-xs-4">
                 <a href="#" onclick="showImage(this)" class="d-block mb-4 h-100">
-                    <img class="img-fluid img-thumbnail checkin" dst="@Url.Content("~/App_Data" + file.Split(new string[] { "App_Data" }, StringSplitOptions.None).Last())" alt="@Regex.Split(file, @"App_Data.Checks.[0-9]+.", RegexOptions.IgnoreCase).Last().Split('.').First()">
+                    <img class="img-fluid img-thumbnail checkin" dst="@Url.Content("~/App_Data" + file.Split(new string[] { "App_Data" }, StringSplitOptions.None).Last())" alt="@Regex.Split(file, @"App_Data.Checks.[0-9]+.", RegexOptions.IgnoreCase).Last().Split('.').First().ToUpper()">
                 </a>
             </div>
         }
@@ -41,7 +41,7 @@
 
 <script>
     function showImage(elem) {
-        var image = $(elem).find('img').attr('src');
+        var image = $(elem).find('img').attr('dst');
         $('.modal-title').text(image.split('/').reverse()[0]);
         $('.modal-image').attr('src', image);
         $('#myModal').modal();
@@ -59,7 +59,7 @@
             check.client.addNewCheckToPage = function (id, code) {
                 if (id != '@ViewContext.RouteData.Values["id"]') return;
                 var image = $('<div class="col-lg-2 col-md-3 col-xs-4"><a href="#" onclick="showImage(this)" class="d-block mb-4 h-100"><img class="img-fluid img-thumbnail checkin" alt=""></a></div>');
-                image.find('img').attr('dst', `@Url.Content("~/App_Data/Checks/")@ViewContext.RouteData.Values["id"]/${code}.jpg`).attr('alt', code);
+                image.find('img').attr('dst', `@Url.Content("~/App_Data/Checks/")@ViewContext.RouteData.Values["id"]/${code}.jpg`).attr('alt', code.toUpperCase());
                 if ($('#toggle').text() == 'Hide') image.find('img').attr('src', image.find('img').attr('dst'));
                 $('#Thumbnail').prepend($(image));
                 toastr.info(code);
