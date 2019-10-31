@@ -66,7 +66,7 @@ namespace FaceManagement.Controllers
 
                     //scope.Complete();
                     GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
-                    return "Check in successfully";
+                    return String.Format("Check in successfully @ {0} - {1}", @class.MyTag.Name, @class.Title);
                 }
             } catch (Exception e)
             {
@@ -97,12 +97,19 @@ namespace FaceManagement.Controllers
         {
             using (var db = new FaceIDEntities())
             {
-                var path = "~/App_Data/Checks/";
-                //var files = Directory.GetFiles(Path.Combine(Server.MapPath(path), id));
-                var files = new DirectoryInfo(Path.Combine(Server.MapPath(path), id))
-                    .GetFiles().OrderByDescending(f => f.CreationTime).ToArray();
-                ViewBag.MyClass = db.MyClasses.Find(int.Parse(id));
-                return View(files.Select(f => f.FullName).ToArray());
+                ViewBag.MyClass = db.MyClasses.Find(int.Parse(id)) ?? new MyClass();
+                try
+                {
+                    var path = "~/App_Data/Checks/";
+                    //var files = Directory.GetFiles(Path.Combine(Server.MapPath(path), id));
+                    var files = new DirectoryInfo(Path.Combine(Server.MapPath(path), id))
+                        .GetFiles().OrderByDescending(f => f.CreationTime).ToArray();
+                    return View(files.Select(f => f.FullName).ToArray());
+                }
+                catch (Exception)
+                {
+                    return View(new string[0]);
+                }
             }
         }
     }
