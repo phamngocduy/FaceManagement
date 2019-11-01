@@ -61,6 +61,7 @@
     <div class="tab-content">
         <div id="{{tag.id}}" class="tab-pane fade {{tag.id === tagId ? 'in active' : null}}" ng-repeat="tag in myTags">
             <input class="btn-success" type="button" value="Add Session" ng-click="addClass(tag.id)" style="float:left" />
+            <input class="btn-primary" type="button" value="Down Excel" ng-click="downExcel(tag.id)" style="float:left" />
             <input class="btn-danger" type="button" value="Delete!!!" ng-click="delTag(tag)" style="float:right" />
             <input class="btn-warning" type="button" value="Update" ng-click="editTag(tag)" style="float:right" />
             <table class="table table-bordered table-hover">
@@ -235,6 +236,9 @@
                 $scope.btnDisable = false;
                 $scope.tagId = tagId;
                 getPosition();
+            }
+            $scope.downExcel = function (tagId) {
+                $.get(`@Url.Action("download", "MyTags")/${tagId}`);
             }
             $scope.editClass = function ($class) {
                 myService.getClass($class.id).then(function ($class) {

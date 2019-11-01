@@ -201,7 +201,6 @@
                 var image = new Image(); image.src = canvas.toDataURL();
                 const displaySize = { width: canvas.width, height: canvas.height };
                 //faceapi.matchDimensions(canvas, displaySize);
-                IMG = image;
                 const detections = await faceapi.detectAllFaces(image, OPTIONS)
                     .withFaceLandmarks().withFaceDescriptors()@(!Request.IsAuthenticated ? ".withFaceExpressions().withAgeAndGender()" : null);
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);

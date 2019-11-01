@@ -1,9 +1,13 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using ClosedXML.Excel;
 using FaceManagement.Models;
+using System.Data;
+using FastMember;
 
 namespace FaceManagement.Controllers
 {
@@ -83,6 +87,40 @@ namespace FaceManagement.Controllers
             {
                 return e.GetBaseException().Message;
             }
+        }
+
+        public FileResult download(int id)
+        {
+            UrlHelper url = new UrlHelper(Request.RequestContext);
+            using (var workbook = new XLWorkbook())
+            {
+                var model = db.MyTags.Find(id);
+                foreach (var item in model.MyClasses)
+                {
+                    var data = db.CheckIns.Where(c => c.Class_id == item.id).ToList().Select(c => new
+                    {
+                        Order = c.id,
+                        Date = c.date,
+                        Code = c.Code,
+                        Image = String.Format("{0}App_Data/Checks/{1}/{2}.jpg", url.Action("Index", "Home", null, Request.Url.Scheme), item.id, c.Image),
+                        Accuracy = c.Accuracy
+                    });
+                    var table = new DataTable();
+                    using (var reader = ObjectReader.Create(data))
+                        table.Load(reader);
+                    workbook.Worksheets.Add(table, Escape(item.Title));
+                }
+                var memory = new MemoryStream();
+                workbook.SaveAs(memory);
+                return File(memory.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Escape(model.Name) + ".xlsx");
+            }
+        }
+
+        private string Escape(string name)
+        {
+            foreach (var c in @":\/?*[]")
+                name = name.Replace(c, '_');
+            return name;
         }
 
         protected override void Dispose(bool disposing)

@@ -331,7 +331,7 @@ namespace FaceManagement.Controllers
                     using (var db = new FaceIDEntities())
                     {
                         var user = db.AspNetUsers.Single(u => u.Email == dummyEmail);
-                        var login = db.AspNetUserLogins.Single(l => l.UserId == user.Id);
+                        var login = db.AspNetUserLogins.First(l => l.UserId == user.Id);
                         loginInfo = new ExternalLoginInfo
                         {
                             Email = dummyEmail,
