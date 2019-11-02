@@ -222,8 +222,26 @@
                         ).draw(canvas);
                     });
 
-                if (FACEMATCHER != null) {
-                    const results = resizedDetections.map(d => FACEMATCHER.findBestMatch(d.descriptor));
+                var hashMap = new Map();
+                logProcess(); logProcess('Face matching');
+                FACEMATCHER.forEach(function (faceMatcher, index) {
+                    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+                    results.forEach((result, i) => {
+                        const box = resizedDetections[i].detection.box;
+                        //const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
+                        //drawBox.draw(canvas);
+                        if (!hashMap.get(result.label) ||
+                            hashMap.get(result.label).result.distance > result.distance)
+                            hashMap.set(result.label, { drawBox: box, result: result });
+                    });
+                });
+                for (var value of hashMap.values()) {
+                    const box = value.drawBox;
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: value.result.toString() });
+                    drawBox.draw(canvas);
+                }
+                if (FACEMATCHER.length < 0) {
+                    const results = resizedDetections.map(d => FACEMATCHER[0].findBestMatch(d.descriptor));
                     var distance = 1;
                     var descriptor = null;
                     results.forEach((result, i) => {
@@ -242,7 +260,7 @@
                                     localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
 
                                 DISTANCE = distance;
-                                if (ISMOBILE == false) {
+                                if (ISMOBILE == true) {
                                     var check = $('#Check').attr('time', 30).show();
                                     var interval = setInterval(function () {
                                         var time = check.attr('time') - 0.5;
@@ -263,8 +281,8 @@
     </script>
 
     <script>
-        var USERID = '@UserId';
-        var FACEMATCHER = null;
+        var USERID = '@UserId', FRIEND = '';
+        var FACEMATCHER = [];
         var FETCH = self.fetch;
 
         self.fetch = function (input) {
@@ -331,20 +349,20 @@
                         try {
                             var detection = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
                             if (detection == undefined) {
-                                logError('Load another model. Please wait about 1 minute...');
+                                logError('Load another model. Please wait about 1 minute...', userID != USERID ? userID : null);
                                 await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
                                 detection = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
                             }
                             if (detection != undefined)
                                 localStorage.setItem(userID, JSON.stringify(Array.prototype.slice.call(detection.descriptor)));
-                            else logError('Face Not Found');
+                            else logError('Face Not Found', userID != USERID ? userID : null);
                             resolve(detection != undefined);
                         } catch (err) {
                             console.error(err);
                             logError('Not Enough Memory');
                         }
                     } catch (err) {
-                        logError('File Not Found');
+                        logError('File Not Found', userID != USERID ? userID : null);
                     }
                 } else resolve(true);
                 logProcess();
@@ -356,7 +374,7 @@
             if (localStorage.getItem(`${userID}2`) != null)
                 descriptors.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${userID}2`)).descriptor)));
             const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(userID, descriptors);
-            FACEMATCHER = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45);
+            FACEMATCHER.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45));
         }
 
         document.getElementById('Check').onclick = function () {
@@ -421,8 +439,16 @@
     <script>
         $(function () {
             $('#Double').click(function () {
+                var text = $(this).text();
                 var code = prompt('Enter another student ID number to check in together');
-                $(this).text(code);
+                if (code) $(this).text(code); else return;
+                $.blockUI();
+                setTimeout(function () {
+                    loadFaceID(code, TINYFACEDETECTOR).then(function (detection) {
+                        if (detection) readFaceID(code);
+                        $.unblockUI();
+                    });
+                }, 100);
             });
         })
     </script>

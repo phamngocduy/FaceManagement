@@ -263,6 +263,7 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\FaceID\nguyenthile.jpg" />
     <Content Include="App_Data\FaceID\phamngocduy.jpg" />
     <Content Include="App_Data\FaceID\phmngocduy.jpg" />
     <Content Include="Content\bootstrap-theme.css" />
