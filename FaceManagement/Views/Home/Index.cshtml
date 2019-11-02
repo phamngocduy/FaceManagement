@@ -224,24 +224,42 @@
 
                 var hashMap = new Map();
                 logProcess(); logProcess('Face matching');
-                FACEMATCHER.forEach(function (faceMatcher, index) {
+                FACEMATCHERS.forEach(function (faceMatcher, index) {
                     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
                     results.forEach((result, i) => {
                         const box = resizedDetections[i].detection.box;
                         //const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
                         //drawBox.draw(canvas);
-                        if (!hashMap.get(result.label) ||
-                            hashMap.get(result.label).result.distance > result.distance)
-                            hashMap.set(result.label, { drawBox: box, result: result });
+                        if (result.label != 'unknown' && (!hashMap.get(result.label) ||
+                            hashMap.get(result.label).result.distance > result.distance))
+                            hashMap.set(result.label, { drawBox: box, result: result, descriptor: detections[i].descriptor });
                     });
                 });
                 for (var value of hashMap.values()) {
                     const box = value.drawBox;
                     const drawBox = new faceapi.draw.DrawBox(box, { label: value.result.toString() });
                     drawBox.draw(canvas);
+                    FACEMAP.set(value.result.label, value.result.distance);
+                    const label = value.result.label;
+                    const distance = value.result.distance;
+                    const descriptor = value.descriptor;
+                    if (localStorage.getItem(`${label}2`) == null ||
+                        distance < JSON.parse(localStorage.getItem(`${label}2`)).distance)
+                        localStorage.setItem(`${label}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                 }
-                if (FACEMATCHER.length < 0) {
-                    const results = resizedDetections.map(d => FACEMATCHER[0].findBestMatch(d.descriptor));
+                if (hashMap.get(USERID)) {
+                    var check = $('#Check').attr('time', 30).show();
+                    var interval = setInterval(function () {
+                        var time = check.attr('time') - 0.5;
+                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
+                        if (time <= 0) {
+                            clearInterval(interval);
+                            check.show().fadeToggle("slow", "linear");
+                        }
+                    }, 1000);
+                }
+                if (FACEMATCHERS.length < 0) {
+                    const results = resizedDetections.map(d => FACEMATCHERS[0].findBestMatch(d.descriptor));
                     var distance = 1;
                     var descriptor = null;
                     results.forEach((result, i) => {
@@ -281,9 +299,10 @@
     </script>
 
     <script>
-        var USERID = '@UserId', FRIEND = '';
-        var FACEMATCHER = [];
+        var USERID = '@UserId';
+        var FACEMATCHERS = [];
         var FETCH = self.fetch;
+        var FACEMAP = new Map();
 
         self.fetch = function (input) {
             return FETCH(input, { cache: "force-cache" }); // no-store
@@ -374,7 +393,7 @@
             if (localStorage.getItem(`${userID}2`) != null)
                 descriptors.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${userID}2`)).descriptor)));
             const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(userID, descriptors);
-            FACEMATCHER.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45));
+            FACEMATCHERS.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45));
         }
 
         document.getElementById('Check').onclick = function () {
@@ -389,7 +408,9 @@
                         form.append('user', USERID);
                         form.append('latitude', position.coords.latitude);
                         form.append('longitude', position.coords.longitude);
-                        form.append('accuracy', DISTANCE);
+                        form.append('accuracy', FACEMAP.get(USERID));
+                        form.append('friend', $('#Double').text());
+                        form.append('distance', FACEMAP.get($('#Double').text()));
                         $.ajax({
                             type: 'POST',
                             url: '@Url.Action("Upload", "Home")',
@@ -439,8 +460,8 @@
     <script>
         $(function () {
             $('#Double').click(function () {
-                var text = $(this).text();
                 var code = prompt('Enter another student ID number to check in together');
+                code = code.trim().toLowerCase();
                 if (code) $(this).text(code); else return;
                 $.blockUI();
                 setTimeout(function () {
