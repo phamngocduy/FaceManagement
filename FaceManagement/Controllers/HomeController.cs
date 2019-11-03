@@ -8,6 +8,8 @@ using FaceManagement.Models;
 using Microsoft.AspNet.SignalR;
 using System.Transactions;
 using System.Data.Entity;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.AspNet.Identity;
 
 namespace FaceManagement.Controllers
 {
@@ -15,6 +17,28 @@ namespace FaceManagement.Controllers
     {
         public ActionResult Index()
         {
+            if (!Request.IsAuthenticated && !String.IsNullOrEmpty((Request.Cookies["fIDLoginInfo"] ?? new HttpCookie("e")).Value))
+            {
+                var cookie = Request.Cookies["fIDLoginInfo"];
+                var loginInfo = new ExternalLoginInfo
+                {
+                    Email = cookie.Values["UserEmail"],
+                    DefaultUserName = cookie.Values["UserEmail"].Split('@')[0],
+                    Login = new UserLoginInfo(cookie.Values["LoginProvider"], cookie.Values["ProviderKey"])
+                };
+                var result = HttpContext.GetOwinContext().Get<ApplicationSignInManager>().ExternalSignIn(loginInfo, isPersistent: true);
+                switch (result)
+                {
+                    case SignInStatus.Success:
+                        cookie.Expires = DateTime.Now.AddDays(365);
+                        Response.SetCookie(cookie);
+                        return RedirectToAction("Index");
+                    default:
+                        cookie.Expires = DateTime.Now.AddDays(-1);
+                        Response.SetCookie(cookie);
+                        break;
+                }
+            }
             return View();
         }
 

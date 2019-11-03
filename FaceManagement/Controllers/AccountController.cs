@@ -344,10 +344,19 @@ namespace FaceManagement.Controllers
             }
 
             // Sign in the user with this external login provider if the user already has a login
-            var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
+            var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: true);
             switch (result)
             {
                 case SignInStatus.Success:
+                    var cookie = new HttpCookie("fIDLoginInfo")
+                    {
+                        Path = "/",
+                        Expires = DateTime.Now.AddDays(365)
+                    };
+                    cookie.Values["UserEmail"] = loginInfo.Email;
+                    cookie.Values["LoginProvider"] = loginInfo.Login.LoginProvider;
+                    cookie.Values["ProviderKey"] = loginInfo.Login.ProviderKey;
+                    Response.SetCookie(cookie);
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");
@@ -416,6 +425,12 @@ namespace FaceManagement.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
+            if (Request.Cookies.AllKeys.Contains("fIDLoginInfo"))
+            {
+                var cookie = Request.Cookies["fIDLoginInfo"];
+                cookie.Expires = DateTime.Now.AddDays(-1);
+                Response.Cookies.Add(cookie);
+            }
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
         }
