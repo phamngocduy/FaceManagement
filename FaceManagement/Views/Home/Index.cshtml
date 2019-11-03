@@ -451,12 +451,15 @@
     <script>eruda.init();</script>
     <script>
         var ISWORKING = false;
+        var STAMP = Date.now();
         setInterval(function () {
-            if (ISWORKING) {
+            console.log((Date.now() - STAMP) + ':' + ISWORKING);
+            if (ISWORKING && Math.round((Date.now()-STAMP)/10)==300) {
                 $.unblockUI();
                 ISWORKING = false;
                 alert('Your device is not supported. Please checkin with your friend.');
-            } else console.log('not working');
+            };
+            STAMP = Date.now();
         }, 3000);
     </script>
 }
