@@ -201,8 +201,10 @@
                 var image = new Image(); image.src = canvas.toDataURL();
                 const displaySize = { width: canvas.width, height: canvas.height };
                 //faceapi.matchDimensions(canvas, displaySize);
+                ISWORKING = true;
                 const detections = await faceapi.detectAllFaces(image, OPTIONS)
                     .withFaceLandmarks().withFaceDescriptors()@(!Request.IsAuthenticated ? ".withFaceExpressions().withAgeAndGender()" : null);
+                ISWORKING = false;
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
                 //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                 faceapi.draw.drawDetections(canvas, resizedDetections);
@@ -247,7 +249,7 @@
                         distance < JSON.parse(localStorage.getItem(`${label}2`)).distance)
                         localStorage.setItem(`${label}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                 }
-                if (hashMap.get(USERID)) {
+                if (hashMap.get(USERID) && ISMOBILE) {
                     var check = $('#Check').attr('time', 30).show();
                     var interval = setInterval(function () {
                         var time = check.attr('time') - 0.5;
@@ -257,41 +259,6 @@
                             check.show().fadeToggle("slow", "linear");
                         }
                     }, 1000);
-                }
-                if (FACEMATCHERS.length < 0) {
-                    const results = resizedDetections.map(d => FACEMATCHERS[0].findBestMatch(d.descriptor));
-                    var distance = 1;
-                    var descriptor = null;
-                    results.forEach((result, i) => {
-                        const box = resizedDetections[i].detection.box;
-                        const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
-                        drawBox.draw(canvas);
-                        if (result.label == USERID) {
-                            if (result.distance < distance) {
-                                distance = result.distance;
-                                descriptor = detections[i].descriptor;
-                            }
-                        }
-                        if (i == results.length - 1) {
-                            if (distance < 1) {
-                                if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
-                                    localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
-
-                                DISTANCE = distance;
-                                if (ISMOBILE == true) {
-                                    var check = $('#Check').attr('time', 30).show();
-                                    var interval = setInterval(function () {
-                                        var time = check.attr('time') - 0.5;
-                                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
-                                        if (time <= 0) {
-                                            clearInterval(interval);
-                                            check.show().fadeToggle("slow", "linear");
-                                        }
-                                    }, 1000);
-                                }
-                            }
-                        }
-                    });
                 }
                 resolve();
             });
@@ -366,11 +333,15 @@
                     try {
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
                         try {
+                            ISWORKING = true;
                             var detection = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                            ISWORKING = false;
                             if (detection == undefined) {
                                 logError('Load another model. Please wait about 1 minute...', userID != USERID ? userID : null);
                                 await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
+                                ISWORKING = true;
                                 detection = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
+                                ISWORKING = false;
                             }
                             if (detection != undefined)
                                 localStorage.setItem(userID, JSON.stringify(Array.prototype.slice.call(detection.descriptor)));
@@ -478,4 +449,14 @@
     <script src="~/Scripts/detectmobilebrowser.js"></script>
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
+    <script>
+        var ISWORKING = false;
+        setInterval(function () {
+            if (ISWORKING) {
+                $.unblockUI();
+                ISWORKING = false;
+                alert('Your device is not supported. Please checkin with your friend.');
+            } else console.log('not working');
+        }, 3000);
+    </script>
 }
