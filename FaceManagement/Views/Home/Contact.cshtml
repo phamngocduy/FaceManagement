@@ -238,7 +238,8 @@
                 getPosition();
             }
             $scope.downExcel = function (tagId) {
-                $.get(`@Url.Action("download", "MyTags")/${tagId}`);
+                //$.get(`@Url.Action("download", "MyTags")/${tagId}`);
+                window.location = `@Url.Action("download", "MyTags")/${tagId}`;
             }
             $scope.editClass = function ($class) {
                 myService.getClass($class.id).then(function ($class) {

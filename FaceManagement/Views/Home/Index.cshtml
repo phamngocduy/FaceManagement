@@ -393,7 +393,7 @@
             if (localStorage.getItem(`${userID}2`) != null)
                 descriptors.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${userID}2`)).descriptor)));
             const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(userID, descriptors);
-            FACEMATCHERS.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45));
+            FACEMATCHERS.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.6)); //0.45
         }
 
         document.getElementById('Check').onclick = function () {
@@ -460,16 +460,17 @@
     <script>
         $(function () {
             $('#Double').click(function () {
-                var code = prompt('Enter another student ID number to check in together');
-                code = code.trim().toLowerCase();
-                if (code) $(this).text(code); else return;
-                $.blockUI();
-                setTimeout(function () {
-                    loadFaceID(code, TINYFACEDETECTOR).then(function (detection) {
-                        if (detection) readFaceID(code);
-                        $.unblockUI();
-                    });
-                }, 100);
+                var code = undefined;
+                if (code = prompt('Enter another student ID number to check in together')) {
+                    $(this).text(code = code.trim().toLowerCase());
+                    $.blockUI();
+                    setTimeout(function () {
+                        loadFaceID(code, TINYFACEDETECTOR).then(function (detection) {
+                            if (detection) readFaceID(code);
+                            $.unblockUI();
+                        });
+                    }, 100);
+                }
             });
         })
     </script>

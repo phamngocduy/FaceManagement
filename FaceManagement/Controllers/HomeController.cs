@@ -29,7 +29,7 @@ namespace FaceManagement.Controllers
             return View();
         }
 
-        public string Upload(string code, string user, HttpPostedFileBase face, CheckIn model)
+        public string Upload(string code, string user, HttpPostedFileBase face, CheckIn model, string friend, double distance = 1)
         {
             try
             {
@@ -40,32 +40,24 @@ namespace FaceManagement.Controllers
                     var @class = db.MyClasses.Find(int.Parse(code));
                     if (@class == null)
                         throw new Exception("Class doesn't exist");
-                    if (distance(@class.Latitude, @class.Longitude, model.Latitude, model.Longitude) > 1)
+                    if (Distance(@class.Latitude, @class.Longitude, model.Latitude, model.Longitude) > 1)
                         throw new Exception("You are not in class");
-                    var check = db.CheckIns.SingleOrDefault(c => c.Class_id == @class.id && c.Code == user);
-                    if (check == null)
-                    {
-                        model.date = DateTime.Now;
-                        model.Class_id = @class.id;
-                        model.Code = model.Image = user;
-                        db.CheckIns.Add(model);
-                    } else
-                    {
-                        check.date = DateTime.Now;
-                        check.Code = check.Image = user;
-                        check.Latitude = model.Latitude;
-                        check.Longitude = model.Longitude;
-                        check.Accuracy = model.Accuracy;
-                        db.Entry(check).State = EntityState.Modified;
-                    }
-                    db.SaveChanges();
 
+                    Checkin(db, int.Parse(code), user, model.Latitude, model.Longitude, user, model.Accuracy);
+                    db.SaveChanges();
                     var path = "~/App_Data/Checks/";
                     Directory.CreateDirectory(Path.Combine(Server.MapPath(path), code));
                     face.SaveAs(Path.Combine(Server.MapPath(path), code, user + ".jpg"));
-
-                    //scope.Complete();
                     GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
+
+                    if (!String.IsNullOrEmpty(friend) && distance < 1)
+                    {
+                        Checkin(db, int.Parse(code), friend, model.Latitude, model.Longitude, user, distance);
+                        db.SaveChanges();
+                        face.SaveAs(Path.Combine(Server.MapPath(path), code, friend + ".jpg"));
+                        GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, friend);
+                    }
+                    //scope.Complete();
                     return String.Format("Check in successfully @ {0} - {1}", @class.MyTag.Name, @class.Title);
                 }
             } catch (Exception e)
@@ -74,7 +66,35 @@ namespace FaceManagement.Controllers
             }
         }
 
-        private double distance(double lat1, double lon1, double lat2, double lon2)
+        private void Checkin(FaceIDEntities db, int class_id, string code, double latitude, double longitude, string image, double accuracy)
+        {
+            var model = db.CheckIns.SingleOrDefault(c => c.Class_id == class_id && c.Code == code);
+            if (model == null)
+            {
+                model = new CheckIn
+                {
+                    date = DateTime.Now,
+                    Class_id = class_id,
+                    Code = code,
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    Image = image,
+                    Accuracy = accuracy
+                };
+                db.CheckIns.Add(model);
+            }
+            else
+            {
+                model.date = DateTime.Now;
+                model.Latitude = model.Latitude;
+                model.Longitude = model.Longitude;
+                model.Image = image;
+                model.Accuracy = model.Accuracy;
+                db.Entry(model).State = EntityState.Modified;
+            }
+        }
+
+        private double Distance(double lat1, double lon1, double lat2, double lon2)
         {
             if (lat1 == lat2 && lon1 == lon2)
                 return 0;

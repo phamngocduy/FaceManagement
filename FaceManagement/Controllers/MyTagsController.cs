@@ -102,7 +102,8 @@ namespace FaceManagement.Controllers
                         Order = c.id,
                         Date = c.date,
                         Code = c.Code,
-                        Image = String.Format("{0}App_Data/Checks/{1}/{2}.jpg", url.Action("Index", "Home", null, Request.Url.Scheme), item.id, c.Image),
+                        Image = String.Format("{0}App_Data/Checks/{1}/{2}.jpg{3}", url.Action("Index", "Home", null, Request.Url.Scheme), item.id, c.Code,
+                                                c.Code != c.Image ? String.Format(" (by {0})", c.Image) : null),
                         Accuracy = c.Accuracy
                     });
                     var table = new DataTable();
