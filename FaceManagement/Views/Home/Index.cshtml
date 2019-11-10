@@ -2,7 +2,8 @@
     var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
-<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
+<script async src="~/Scripts/face-api.min.js"></script>
+<script async src="~/Scripts/localforage.min.js"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 <button id="Check" style="position:fixed;left:1em;bottom:1em;display:none" class="btn-success">Check in (?0s)</button>
@@ -10,10 +11,10 @@
 
 @if (!Request.IsAuthenticated)
 {
-    <script>
+    <script1>
         if (confirm('Do you want to login?'))
             window.location.replace('@Url.Action("Login", "Account")');
-    </script>
+    </script1>
 }
 
 @section Scripts {
@@ -272,7 +273,29 @@
         var FACEMAP = new Map();
 
         self.fetch = function (input) {
-            return FETCH(input, { cache: "force-cache" }); // no-store
+            //return FETCH(input, { cache: "force-cache" }); // no-store
+            return new Promise(function (resolve) {
+                const file = input.split('/').reverse()[0];
+                localforage.getItem(file, function (err, value) {
+                    if (err != null) {
+                        FETCH(input, { cache: "force-cache" }).then(function (response) {
+                            response.blob().then(function (blob) {
+                                resolve(new Response(blob));
+                            });
+                        });
+                        console.error(err);
+                    } else {
+                        if (value == null)
+                            FETCH(input, { cache: "force-cache" }).then(function (response) {
+                                response.blob().then(function (blob) {
+                                    localforage.setItem(file, blob);
+                                    resolve(new Response(blob));
+                                });
+                            });
+                        else resolve(new Response(value));
+                    }
+                });
+            });
         }
 
         function showProgress(val) {
@@ -453,8 +476,8 @@
         var ISWORKING = false;
         var STAMP = Date.now();
         setInterval(function () {
-            console.log((Date.now() - STAMP) + ':' + ISWORKING);
-            if (ISWORKING && Math.round((Date.now()-STAMP)/10)==300) {
+            //console.log((Date.now() - STAMP) + ':' + ISWORKING);
+            if (ISWORKING && Math.round((Date.now() - STAMP) / 10) == 300) {
                 $.unblockUI();
                 ISWORKING = false;
                 alert('Your device is not supported. Please checkin with your friend.');
