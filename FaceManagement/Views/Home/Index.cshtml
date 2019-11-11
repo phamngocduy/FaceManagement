@@ -2,17 +2,19 @@
     var UserId = User.Identity.GetUserName() ?? "";
     UserId = UserId.ToLower().Split('@')[0].Split('.').Last();
 }
-<script async src="@Url.Content("~/Scripts/face-api.min.js")"></script>
+<script async src="~/Scripts/face-api.min.js"></script>
+<script async src="~/Scripts/localforage.min.js"></script>
 <input id="Upload" type="file" style="display:none" accept="image/*" capture />
 <canvas id="Canvas" style="width:100%;height:100vh"></canvas>
 <button id="Check" style="position:fixed;left:1em;bottom:1em;display:none" class="btn-success">Check in (?0s)</button>
+<button id="Double" class="btn btn-primary" style="position:fixed;left:0;top:50px;opacity:0.3"><span class="glyphicon glyphicon-user"></span></button>
 
 @if (!Request.IsAuthenticated)
 {
-    <script>
+    <script1>
         if (confirm('Do you want to login?'))
             window.location.replace('@Url.Action("Login", "Account")');
-    </script>
+    </script1>
 }
 
 @section Scripts {
@@ -200,9 +202,10 @@
                 var image = new Image(); image.src = canvas.toDataURL();
                 const displaySize = { width: canvas.width, height: canvas.height };
                 //faceapi.matchDimensions(canvas, displaySize);
-                IMG = image;
+                ISWORKING = true;
                 const detections = await faceapi.detectAllFaces(image, OPTIONS)
                     .withFaceLandmarks().withFaceDescriptors()@(!Request.IsAuthenticated ? ".withFaceExpressions().withAgeAndGender()" : null);
+                ISWORKING = false;
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
                 //canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                 faceapi.draw.drawDetections(canvas, resizedDetections);
@@ -221,41 +224,42 @@
                             result.detection.box.bottomLeft
                         ).draw(canvas);
                     });
-                
-                if (FACEMATCHER != null) {
-                    const results = resizedDetections.map(d => FACEMATCHER.findBestMatch(d.descriptor));
-                    var distance = 1;
-                    var descriptor = null;
+
+                var hashMap = new Map();
+                logProcess(); logProcess('Face matching');
+                FACEMATCHERS.forEach(function (faceMatcher, index) {
+                    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
                     results.forEach((result, i) => {
                         const box = resizedDetections[i].detection.box;
-                        const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
-                        drawBox.draw(canvas);
-                        if (result.label == USERID) {
-                            if (result.distance < distance) {
-                                distance = result.distance;
-                                descriptor = detections[i].descriptor;
-                            }
-                        }
-                        if (i == results.length - 1) {
-                            if (distance < 1) {
-                                if (localStorage.getItem(`${USERID}2`) == null || distance < JSON.parse(localStorage.getItem(`${USERID}2`)).distance)
-                                    localStorage.setItem(`${USERID}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
-
-                                DISTANCE = distance;
-                                if (ISMOBILE == true) {
-                                    var check = $('#Check').attr('time', 30).show();
-                                    var interval = setInterval(function () {
-                                        var time = check.attr('time') - 0.5;
-                                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
-                                        if (time <= 0) {
-                                            clearInterval(interval);
-                                            check.show().fadeToggle("slow", "linear");
-                                        }
-                                    }, 1000);
-                                }
-                            }
-                        }
+                        //const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
+                        //drawBox.draw(canvas);
+                        if (result.label != 'unknown' && (!hashMap.get(result.label) ||
+                            hashMap.get(result.label).result.distance > result.distance))
+                            hashMap.set(result.label, { drawBox: box, result: result, descriptor: detections[i].descriptor });
                     });
+                });
+                for (var value of hashMap.values()) {
+                    const box = value.drawBox;
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: value.result.toString() });
+                    drawBox.draw(canvas);
+                    FACEMAP.set(value.result.label, value.result.distance);
+                    const label = value.result.label;
+                    const distance = value.result.distance;
+                    const descriptor = value.descriptor;
+                    if (localStorage.getItem(`${label}2`) == null ||
+                        distance < JSON.parse(localStorage.getItem(`${label}2`)).distance)
+                        localStorage.setItem(`${label}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
+                }
+                if (hashMap.get(USERID) && ISMOBILE) {
+                    var check = $('#Check').attr('time', 30).show();
+                    var interval = setInterval(function () {
+                        var time = check.attr('time') - 0.5;
+                        check.attr('time', time).text(`Check in (${time}s)`).toggle();
+                        if (time <= 0) {
+                            clearInterval(interval);
+                            check.show().fadeToggle("slow", "linear");
+                        }
+                    }, 1000);
                 }
                 resolve();
             });
@@ -264,11 +268,34 @@
 
     <script>
         var USERID = '@UserId';
-        var FACEMATCHER = null;
+        var FACEMATCHERS = [];
         var FETCH = self.fetch;
+        var FACEMAP = new Map();
 
         self.fetch = function (input) {
-            return FETCH(input, { cache: "force-cache" }); // no-store
+            //return FETCH(input, { cache: "force-cache" }); // no-store
+            return new Promise(function (resolve) {
+                const file = input.split('/').reverse()[0];
+                localforage.getItem(file, function (err, value) {
+                    if (err != null) {
+                        FETCH(input, { cache: "force-cache" }).then(function (response) {
+                            response.blob().then(function (blob) {
+                                resolve(new Response(blob));
+                            });
+                        });
+                        console.error(err);
+                    } else {
+                        if (value == null)
+                            FETCH(input, { cache: "force-cache" }).then(function (response) {
+                                response.blob().then(function (blob) {
+                                    localforage.setItem(file, blob);
+                                    resolve(new Response(blob));
+                                });
+                            });
+                        else resolve(new Response(value));
+                    }
+                });
+            });
         }
 
         function showProgress(val) {
@@ -321,30 +348,34 @@
             return new Promise(async function (resolve) {
                 var pathID = userID;
                 if (localStorage.getItem(userID) == null) {
-                    if (new RegExp('[0-9]+[a-z]+[0-9]+$').test(userID)) {
+                    if (new RegExp('[0-9]*[a-z]+[0-9]+$').test(userID)) {
                         var path = userID.match(/[a-z]+/)[0];
                         paths = userID.split(path);
-                        pathID = paths[0] + '/' + path + '/' + userID;
+                        pathID = (paths[0].length > 0 ? paths[0] + '/' : '') + path + '/' + userID;
                     }
                     try {
                         const img = await faceapi.fetchImage(`@Url.Content("~/App_Data/FaceID/")${pathID}.jpg`);
                         try {
+                            ISWORKING = true;
                             var detection = await faceapi.detectSingleFace(img, TINYFACEDETECTOR).withFaceLandmarks().withFaceDescriptor();
+                            ISWORKING = false;
                             if (detection == undefined) {
-                                alert('Load another model. Please wait about 1 minute...');
+                                logError('Load another model. Please wait about 1 minute...', userID != USERID ? userID : null);
                                 await faceapi.nets.mtcnn.loadFromUri('@Url.Content("~/Static")');
+                                ISWORKING = true;
                                 detection = await faceapi.detectSingleFace(img, MTCNN).withFaceLandmarks().withFaceDescriptor();
+                                ISWORKING = false;
                             }
                             if (detection != undefined)
                                 localStorage.setItem(userID, JSON.stringify(Array.prototype.slice.call(detection.descriptor)));
-                            else logError('Face Not Found');
+                            else logError('Face Not Found', userID != USERID ? userID : null);
                             resolve(detection != undefined);
                         } catch (err) {
                             console.error(err);
-                            alert('Not Enough Memory');
+                            logError('Not Enough Memory');
                         }
                     } catch (err) {
-                        logError('File Not Found');
+                        logError('File Not Found', userID != USERID ? userID : null);
                     }
                 } else resolve(true);
                 logProcess();
@@ -356,7 +387,7 @@
             if (localStorage.getItem(`${userID}2`) != null)
                 descriptors.push(new Float32Array(JSON.parse(JSON.parse(localStorage.getItem(`${userID}2`)).descriptor)));
             const labeledFaceDescriptors = new faceapi.LabeledFaceDescriptors(userID, descriptors);
-            FACEMATCHER = new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.45);
+            FACEMATCHERS.push(new faceapi.FaceMatcher(labeledFaceDescriptors, descriptors.length == 1 ? 0.6 : 0.6)); //0.45
         }
 
         document.getElementById('Check').onclick = function () {
@@ -371,7 +402,9 @@
                         form.append('user', USERID);
                         form.append('latitude', position.coords.latitude);
                         form.append('longitude', position.coords.longitude);
-                        form.append('accuracy', DISTANCE);
+                        form.append('accuracy', FACEMAP.get(USERID));
+                        form.append('friend', $('#Double').text());
+                        form.append('distance', FACEMAP.get($('#Double').text()));
                         $.ajax({
                             type: 'POST',
                             url: '@Url.Action("Upload", "Home")',
@@ -398,14 +431,14 @@
             }
         }
 
-        function logError(error) {
+        function logError(error, more) {
             try {
                 throw new Error('');
             } catch (err) {
                 var form = new FormData();
                 form.append('Code', USERID);
                 form.append('Error', error);
-                form.append('Trace', err.stack || '');
+                form.append('Trace', more ? more : err.stack || '');
                 $.ajax({
                     type: 'POST',
                     url: '@Url.Action("Create", "ErrorLogs")',
@@ -417,8 +450,39 @@
             }
         }
     </script>
+
+    <script>
+        $(function () {
+            $('#Double').click(function () {
+                var code = undefined;
+                if (code = prompt('Enter another student ID number to check in together')) {
+                    $(this).text(code = code.trim().toLowerCase());
+                    $.blockUI();
+                    setTimeout(function () {
+                        loadFaceID(code, TINYFACEDETECTOR).then(function (detection) {
+                            if (detection) readFaceID(code);
+                            $.unblockUI();
+                        });
+                    }, 100);
+                }
+            });
+        })
+    </script>
     <script>var ISMOBILE = false;</script>
     <script src="~/Scripts/detectmobilebrowser.js"></script>
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
+    <script>
+        var ISWORKING = false;
+        var STAMP = Date.now();
+        setInterval(function () {
+            //console.log((Date.now() - STAMP) + ':' + ISWORKING);
+            if (ISWORKING && Math.round((Date.now() - STAMP) / 10) == 300) {
+                $.unblockUI();
+                ISWORKING = false;
+                alert('Your device is not supported. Please checkin with your friend.');
+            };
+            STAMP = Date.now();
+        }, 3000);
+    </script>
 }
