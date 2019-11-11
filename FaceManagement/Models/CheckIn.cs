@@ -20,7 +20,7 @@ namespace FaceManagement.Models
         public string Code { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public string Image { get; set; }
+        public string Email { get; set; }
         public double Accuracy { get; set; }
     
         public virtual MyClass MyClass { get; set; }

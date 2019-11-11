@@ -103,7 +103,7 @@ namespace FaceManagement.Controllers
                         Date = c.date,
                         Code = c.Code,
                         Image = String.Format("{0}App_Data/Checks/{1}/{2}.jpg{3}", url.Action("Index", "Home", null, Request.Url.Scheme), item.id, c.Code,
-                                                c.Code != c.Image ? String.Format(" (by {0})", c.Image) : null),
+                                                c.Code != c.Email ? String.Format(" (by {0})", c.Email) : null),
                         Accuracy = c.Accuracy
                     });
                     var table = new DataTable();

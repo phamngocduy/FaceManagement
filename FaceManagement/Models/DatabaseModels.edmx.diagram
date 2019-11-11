@@ -10,6 +10,7 @@
         <EntityTypeShape EntityType="FaceManagementModel.AspNetUserLogin" Width="1.5" PointX="5.25" PointY="3.75" />
         <EntityTypeShape EntityType="FaceManagementModel.AspNetUser" Width="1.5" PointX="3" PointY="1.375" />
         <EntityTypeShape EntityType="FaceManagementModel.CheckIn" Width="1.5" PointX="5.25" PointY="7" />
+        <EntityTypeShape EntityType="FaceManagementModel.ErrorLog" Width="1.5" PointX="7.75" PointY="0.75" />
         <EntityTypeShape EntityType="FaceManagementModel.MyClass" Width="1.5" PointX="3" PointY="7" />
         <EntityTypeShape EntityType="FaceManagementModel.MyTag" Width="1.5" PointX="0.75" PointY="7.5" />
         <AssociationConnector Association="FaceManagementModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" />
@@ -17,7 +18,6 @@
         <AssociationConnector Association="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" />
         <AssociationConnector Association="FaceManagementModel.FK__MyClass__Tag_id__36B12243" />
         <AssociationConnector Association="FaceManagementModel.AspNetUserRoles" />
-        <EntityTypeShape EntityType="FaceManagementModel.ErrorLog" Width="1.5" PointX="7.375" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -53,7 +53,7 @@ namespace FaceManagement.Controllers
             return View();
         }
 
-        public string Upload(string code, string user, HttpPostedFileBase face, CheckIn model, string friend, double distance = 1)
+        public string Upload(string code, string email, HttpPostedFileBase face, CheckIn model, string users, string accuracy)
         {
             try
             {
@@ -66,21 +66,17 @@ namespace FaceManagement.Controllers
                         throw new Exception("Class doesn't exist");
                     if (Distance(@class.Latitude, @class.Longitude, model.Latitude, model.Longitude) > 1)
                         throw new Exception("You are not in class");
-
-                    Checkin(db, int.Parse(code), user, model.Latitude, model.Longitude, user, model.Accuracy);
-                    db.SaveChanges();
                     var path = "~/App_Data/Checks/";
                     Directory.CreateDirectory(Path.Combine(Server.MapPath(path), code));
-                    face.SaveAs(Path.Combine(Server.MapPath(path), code, user + ".jpg"));
-                    GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, user);
-
-                    if (!String.IsNullOrEmpty(friend) && distance < 1)
+                    var faces = users.Split(',');
+                    var distances = accuracy.Split(',').Select(d => double.Parse(d)).ToArray();
+                    for (int i = 0; i < faces.Length; i++)
                     {
-                        Checkin(db, int.Parse(code), friend, model.Latitude, model.Longitude, user, distance);
-                        db.SaveChanges();
-                        face.SaveAs(Path.Combine(Server.MapPath(path), code, friend + ".jpg"));
-                        GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, friend);
+                        Checkin(db, int.Parse(code), faces[i], model.Latitude, model.Longitude, email, distances[i]);
+                        face.SaveAs(Path.Combine(Server.MapPath(path), code, faces[i] + ".jpg"));
+                        GlobalHost.ConnectionManager.GetHubContext<CheckHub>().Clients.All.addNewCheckToPage(code, faces[i]);
                     }
+                    db.SaveChanges();
                     //scope.Complete();
                     return String.Format("Check in successfully @ {0} - {1}", @class.MyTag.Name, @class.Title);
                 }
@@ -90,7 +86,7 @@ namespace FaceManagement.Controllers
             }
         }
 
-        private void Checkin(FaceIDEntities db, int class_id, string code, double latitude, double longitude, string image, double accuracy)
+        private void Checkin(FaceIDEntities db, int class_id, string code, double latitude, double longitude, string email, double accuracy)
         {
             var model = db.CheckIns.SingleOrDefault(c => c.Class_id == class_id && c.Code == code);
             if (model == null)
@@ -102,7 +98,7 @@ namespace FaceManagement.Controllers
                     Code = code,
                     Latitude = latitude,
                     Longitude = longitude,
-                    Image = image,
+                    Email = email,
                     Accuracy = accuracy
                 };
                 db.CheckIns.Add(model);
@@ -112,7 +108,7 @@ namespace FaceManagement.Controllers
                 model.date = DateTime.Now;
                 model.Latitude = model.Latitude;
                 model.Longitude = model.Longitude;
-                model.Image = image;
+                model.Email = email;
                 model.Accuracy = model.Accuracy;
                 db.Entry(model).State = EntityState.Modified;
             }

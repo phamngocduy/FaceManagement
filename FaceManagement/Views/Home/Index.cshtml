@@ -11,10 +11,10 @@
 
 @if (!Request.IsAuthenticated)
 {
-    <script1>
+    <script>
         if (confirm('Do you want to login?'))
             window.location.replace('@Url.Action("Login", "Account")');
-    </script1>
+    </script>
 }
 
 @section Scripts {
@@ -238,19 +238,30 @@
                             hashMap.set(result.label, { drawBox: box, result: result, descriptor: detections[i].descriptor });
                     });
                 });
+                var hashSet = new Map();
+                for (var value of hashMap.values()) {
+                    if (!hashSet.get(value.drawBox) || hashSet.get(value.drawBox).result.distance > value.result.distance)
+                        hashSet.set(value.drawBox, value);
+                }
+                hashMap = new Map();
+                for (var value of hashSet.values())
+                    hashMap.set(value.result.label, value);
+                FACEMAP = new Map();
                 for (var value of hashMap.values()) {
                     const box = value.drawBox;
                     const drawBox = new faceapi.draw.DrawBox(box, { label: value.result.toString() });
                     drawBox.draw(canvas);
                     FACEMAP.set(value.result.label, value.result.distance);
+                    /* bad accuracy
                     const label = value.result.label;
                     const distance = value.result.distance;
                     const descriptor = value.descriptor;
                     if (localStorage.getItem(`${label}2`) == null ||
                         distance < JSON.parse(localStorage.getItem(`${label}2`)).distance)
                         localStorage.setItem(`${label}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
+                    */
                 }
-                if (hashMap.get(USERID) && ISMOBILE) {
+                if (hashMap.size > 0 && ISMOBILE == false) {
                     var check = $('#Check').attr('time', 30).show();
                     var interval = setInterval(function () {
                         var time = check.attr('time') - 0.5;
@@ -399,12 +410,11 @@
                         var form = new FormData();
                         form.append('code', code);
                         form.append('face', image);
-                        form.append('user', USERID);
+                        form.append('email', USERID);
+                        form.append('users', Array.from(FACEMAP.keys()));
                         form.append('latitude', position.coords.latitude);
                         form.append('longitude', position.coords.longitude);
-                        form.append('accuracy', FACEMAP.get(USERID));
-                        form.append('friend', $('#Double').text());
-                        form.append('distance', FACEMAP.get($('#Double').text()));
+                        form.append('accuracy', Array.from(FACEMAP.values()));
                         $.ajax({
                             type: 'POST',
                             url: '@Url.Action("Upload", "Home")',

@@ -66,7 +66,7 @@
           <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Latitude" Type="float" Nullable="false" />
           <Property Name="Longitude" Type="float" Nullable="false" />
-          <Property Name="Image" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Accuracy" Type="float" Nullable="false" />
         </EntityType>
         <EntityType Name="ErrorLog">
@@ -223,6 +223,7 @@
           <EntitySet Name="AspNetUserLogins" EntityType="FaceManagementModel.AspNetUserLogin" />
           <EntitySet Name="AspNetUsers" EntityType="FaceManagementModel.AspNetUser" />
           <EntitySet Name="CheckIns" EntityType="FaceManagementModel.CheckIn" />
+          <EntitySet Name="ErrorLogs" EntityType="FaceManagementModel.ErrorLog" />
           <EntitySet Name="MyClasses" EntityType="FaceManagementModel.MyClass" />
           <EntitySet Name="MyTags" EntityType="FaceManagementModel.MyTag" />
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="FaceManagementModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
@@ -245,7 +246,6 @@
             <End Role="AspNetRole" EntitySet="AspNetRoles" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
-          <EntitySet Name="ErrorLogs" EntityType="FaceManagementModel.ErrorLog" />
         </EntityContainer>
         <EntityType Name="AspNetRole">
           <Key>
@@ -306,9 +306,18 @@
           <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="Latitude" Type="Double" Nullable="false" />
           <Property Name="Longitude" Type="Double" Nullable="false" />
-          <Property Name="Image" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="Accuracy" Type="Double" Nullable="false" />
           <NavigationProperty Name="MyClass" Relationship="FaceManagementModel.FK__CheckIn__Class_i__3D5E1FD2" FromRole="CheckIn" ToRole="MyClass" />
+        </EntityType>
+        <EntityType Name="ErrorLog">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Error" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Trace" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="MyClass">
           <Key>
@@ -389,15 +398,6 @@
           <End Type="FaceManagementModel.AspNetRole" Role="AspNetRole" Multiplicity="*" />
           <End Type="FaceManagementModel.AspNetUser" Role="AspNetUser" Multiplicity="*" />
         </Association>
-        <EntityType Name="ErrorLog">
-          <Key>
-            <PropertyRef Name="id" />
-          </Key>
-          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Code" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Error" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Trace" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -453,12 +453,22 @@
             <EntityTypeMapping TypeName="FaceManagementModel.CheckIn">
               <MappingFragment StoreEntitySet="CheckIn">
                 <ScalarProperty Name="Accuracy" ColumnName="Accuracy" />
-                <ScalarProperty Name="Image" ColumnName="Image" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
                 <ScalarProperty Name="Longitude" ColumnName="Longitude" />
                 <ScalarProperty Name="Latitude" ColumnName="Latitude" />
                 <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="Class_id" ColumnName="Class_id" />
                 <ScalarProperty Name="date" ColumnName="date" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ErrorLogs">
+            <EntityTypeMapping TypeName="FaceManagementModel.ErrorLog">
+              <MappingFragment StoreEntitySet="ErrorLog">
+                <ScalarProperty Name="Trace" ColumnName="Trace" />
+                <ScalarProperty Name="Error" ColumnName="Error" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
                 <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -493,16 +503,6 @@
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
-          <EntitySetMapping Name="ErrorLogs">
-            <EntityTypeMapping TypeName="FaceManagementModel.ErrorLog">
-              <MappingFragment StoreEntitySet="ErrorLog">
-                <ScalarProperty Name="Trace" ColumnName="Trace" />
-                <ScalarProperty Name="Error" ColumnName="Error" />
-                <ScalarProperty Name="Code" ColumnName="Code" />
-                <ScalarProperty Name="id" ColumnName="id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
