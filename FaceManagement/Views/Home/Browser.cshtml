@@ -1,0 +1,42 @@
+﻿@model IEnumerable<FaceManagement.Models.CheckIn>
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <!-- Nav tabs category -->
+        <ul class="nav nav-tabs faq-cat-tabs">
+            @foreach (var tag in Model.Select(c => c.MyClass).Distinct().Select(c => c.MyTag).Distinct())
+            {
+                <li><a href="#faq-tag-@tag.id" data-toggle="tab">@tag.Name</a></li>
+            }
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content faq-cat-content">
+            @foreach (var group in Model.GroupBy(c => c.MyClass.MyTag))
+            {
+                <div class="tab-pane in fade" id="faq-tag-@group.Key.id">
+                    <div class="panel-group" id="accordion-tag-@group.Key.id">
+                        @foreach (var item in group.GroupBy(c => c.MyClass).OrderBy(c => c.Key.date))
+                        {
+                            <div class="panel panel-default panel-faq">
+                                <div class="panel-heading">
+                                    <a data-toggle="collapse" data-parent="#accordion-tag-@group.Key.id" href="#faq-tag-@group.Key.id-class-@item.Key.id">
+                                        <h4 class="panel-title">
+                                            @item.Key.Title
+                                            <span class="pull-right"><i class="glyphicon glyphicon-plus"></i></span>
+                                        </h4>
+                                    </a>
+                                </div>
+                                <div id="faq-tag-@group.Key.id-class-@item.Key.id" class="panel-collapse collapse">
+                                    <div class="panel-body">
+                                        <img src="@Url.Content(String.Format("~/App_Data/Checks/{0}/{1}.jpg", item.Key.id, item.First().Code))" alt="@item.First().Code by @item.First().Email" style="width:100%" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

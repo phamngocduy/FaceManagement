@@ -152,5 +152,17 @@ namespace FaceManagement.Controllers
                 }
             }
         }
+
+        [System.Web.Mvc.Authorize]
+        public ViewResult Browser()
+        {
+            var code = User.Identity.Name.Split('@').First().Split('.').Last();
+            using (var db = new FaceIDEntities())
+            {
+                var model = db.CheckIns.Where(c => c.Code == code)
+                    .Include(c => c.MyClass).Include(c => c.MyClass.MyTag);
+                return View(model.ToList());
+            }
+        }
     }
 }
