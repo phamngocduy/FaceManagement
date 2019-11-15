@@ -29,7 +29,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("My Classes", "Contact", "Home")</li>
+                    <li>@Html.ActionLink("My Classes", User.Identity.Name.ToLower().EndsWith("@vanlanguni.vn") ? "Browser" : "Contact", "Home")</li>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             Models

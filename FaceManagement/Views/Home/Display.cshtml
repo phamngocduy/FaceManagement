@@ -1,5 +1,4 @@
-﻿@using System.Text.RegularExpressions
-@model string[]
+﻿@model IEnumerable<FaceManagement.Models.CheckIn>
 @{
     var myClass = ViewBag.MyClass as FaceManagement.Models.MyClass;
 }
@@ -9,15 +8,18 @@
         <a href="#">http://bit.ly/DDanh</a>
         <span>code:</span>
         <b>@(myClass.id)-@Math.Round(myClass.Latitude * 10 + myClass.Longitude * 10)</b>
-        <button id="toggle" class="btn-info" onclick="toggleImage(this)" style="font-size:18px">Show</button>
+        @if (myClass.MyTag.User == User.Identity.Name)
+        {
+            <button id="toggle" class="btn-info" onclick="toggleImage(this)" style="font-size:18px">Show</button>
+        }
     </h3>
     <hr class="mt-2 mb-5">
     <div id="Thumbnail" class="row text-center text-lg-left">
-        @foreach (var file in Model)
+        @foreach (var checkin in Model)
         {
             <div class="col-lg-2 col-md-3 col-xs-4">
                 <a href="#" onclick="showImage(this)" class="d-block mb-4 h-100">
-                    <img class="img-fluid img-thumbnail checkin" dst="@Url.Content("~/App_Data" + file.Split(new string[] { "App_Data" }, StringSplitOptions.None).Last())" alt="@Regex.Split(file, @"App_Data.Checks.[0-9]+.", RegexOptions.IgnoreCase).Last().Split('.').First().ToUpper()">
+                    <img class="img-fluid img-thumbnail checkin" dst="@Url.Content(String.Format("~/App_Data/Checks/{0}/{1}.jpg", myClass.id, checkin.Code))" alt="@checkin.Code.ToUpper()">
                 </a>
             </div>
         }

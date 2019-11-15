@@ -29,7 +29,10 @@
                                 </div>
                                 <div id="faq-tag-@group.Key.id-class-@item.Key.id" class="panel-collapse collapse">
                                     <div class="panel-body">
-                                        <img src="@Url.Content(String.Format("~/App_Data/Checks/{0}/{1}.jpg", item.Key.id, item.First().Code))" alt="@item.First().Code by @item.First().Email" style="width:100%" />
+                                        @foreach (var image in item)
+                                        {
+                                            <img src="@Url.Content(String.Format("~/App_Data/Checks/{0}/{1}.jpg", item.Key.id, image.Code))" alt="@image.Code by @image.Email" style="width:100%" />
+                                        }
                                     </div>
                                 </div>
                             </div>
