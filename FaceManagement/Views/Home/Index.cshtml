@@ -261,7 +261,7 @@
                         localStorage.setItem(`${label}2`, JSON.stringify({ distance: distance, descriptor: JSON.stringify(Array.prototype.slice.call(descriptor)) }));
                     */
                 }
-                if (hashMap.size > 0 && ISMOBILE == false) {
+                if (hashMap.size > 0 && ISMOBILE) {
                     var check = $('#Check').attr('time', 30).show();
                     var interval = setInterval(function () {
                         var time = check.attr('time') - 0.5;
