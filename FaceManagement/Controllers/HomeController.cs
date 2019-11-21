@@ -58,6 +58,7 @@ namespace FaceManagement.Controllers
             try
             {
                 code = code.Split('-')[0];
+                email = User.Identity.Name;
                 using (var db = new FaceIDEntities())
                 //using (var scope = new TransactionScope())
                 {
@@ -133,23 +134,27 @@ namespace FaceManagement.Controllers
             }
         }
 
-        public ViewResult Display(string id)
+        public ViewResult Display(int id)
         {
             using (var db = new FaceIDEntities())
             {
-                ViewBag.MyClass = db.MyClasses.Find(int.Parse(id)) ?? new MyClass();
-                try
-                {
-                    var path = "~/App_Data/Checks/";
-                    //var files = Directory.GetFiles(Path.Combine(Server.MapPath(path), id));
-                    var files = new DirectoryInfo(Path.Combine(Server.MapPath(path), id))
-                        .GetFiles().OrderByDescending(f => f.CreationTime).ToArray();
-                    return View(files.Select(f => f.FullName).ToArray());
-                }
-                catch (Exception)
-                {
-                    return View(new string[0]);
-                }
+                var myClass = db.MyClasses.Find(id);
+                ViewBag.MyClass = myClass;
+                myClass.MyTag = db.MyTags.Find(myClass.Tag_id);
+                return View(myClass.CheckIns.ToList());
+            }
+        }
+
+        [System.Web.Mvc.Authorize]
+        public ViewResult Browser(string id)
+        {
+            var email = User.Identity.Name;
+            var code = email.Split('@').First().Split('.').Last();
+            using (var db = new FaceIDEntities())
+            {
+                var model = db.CheckIns.Where(c => c.Code == code || (id == "all" && c.Email == email))
+                    .Include(c => c.MyClass).Include(c => c.MyClass.MyTag);
+                return View(model.ToList());
             }
         }
     }
